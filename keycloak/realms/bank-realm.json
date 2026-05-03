@@ -1,0 +1,116 @@
+{
+  "realm": "bank-realm",
+  "enabled": true,
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "accessTokenLifespan": 3600,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+
+  "roles": {
+    "realm": [
+      {
+        "name": "USER",
+        "description": "Regular bank user",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "TRANSFER_WRITE",
+        "description": "Permission to perform transfers",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "SERVICE",
+        "description": "Generic service role for microservices",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "ACCOUNTS_WRITE",
+        "description": "Permission to write to accounts",
+        "composite": false,
+        "clientRole": false
+      }
+    ]
+  },
+
+  "clients": [
+    {
+      "clientId": "bank-ui",
+      "name": "Bank UI",
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "ui-client-secret",
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://localhost:8084/login/oauth2/code/*"
+      ],
+      "baseUrl": "http://localhost:8084",
+      "webOrigins": [
+        "http://localhost:8084"
+      ],
+      "defaultClientScopes": [
+        "web-origins",
+        "role_list",
+        "profile",
+        "email",
+        "roles"
+      ],
+      "optionalClientScopes": [
+        "address",
+        "phone",
+        "offline_access",
+        "microprofile-jwt"
+      ]
+    },
+    {
+      "clientId": "transfer-service",
+      "name": "Transfer Service",
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "transfer-service-secret",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true
+    }
+  ],
+
+  "users": [
+    {
+      "username": "test-user",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Test",
+      "lastName": "User",
+      "email": "test-user@example.com",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "test123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "USER",
+        "TRANSFER_WRITE"
+      ]
+    },
+    {
+      "username": "service-account-transfer-service",
+      "enabled": true,
+      "serviceAccountClientId": "transfer-service",
+      "realmRoles": [
+        "SERVICE",
+        "ACCOUNTS_WRITE"
+      ]
+    }
+  ]
+}
