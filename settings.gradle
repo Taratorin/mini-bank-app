@@ -1,0 +1,10 @@
+rootProject.name = 'mini-bank-app'
+
+include(
+        "bank-ui",
+        "bank-gateway",
+        "transfer-service",
+        "accounts-service",
+        "cash-service",
+        "notifications-service"
+)
