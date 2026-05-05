@@ -4,8 +4,8 @@ import jakarta.annotation.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestParam;
-import ru.cloudwithout.bankui.controller.dto.AccountDto;
-import ru.cloudwithout.bankui.controller.dto.CashAction;
+import ru.cloudwithout.bankui.model.dto.AccountDto;
+import ru.cloudwithout.bankui.model.dto.CashAction;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -13,10 +13,9 @@ import java.util.List;
 
 /**
  * Заглушка.
- *
+ * <p>
  * Только для тестовых целей, чтобы ознакомиться с работой фронта
  */
-@Deprecated
 @Service
 public class AccountStub {
     private String name = "Иванов Иван";
