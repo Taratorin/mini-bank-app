@@ -8,7 +8,6 @@
   "accessTokenLifespan": 3600,
   "ssoSessionIdleTimeout": 1800,
   "ssoSessionMaxLifespan": 36000,
-
   "roles": {
     "realm": [
       {
@@ -37,7 +36,6 @@
       }
     ]
   },
-
   "clients": [
     {
       "clientId": "bank-ui",
@@ -80,12 +78,33 @@
       "implicitFlowEnabled": false,
       "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": true
+    },
+    {
+      "clientId": "accounts-service",
+      "name": "Accounts Service",
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "accounts-service-secret",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true
+    },
+    {
+      "clientId": "cash-service",
+      "name": "Cash Service",
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "cash-service-secret",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true
     }
   ],
-
   "users": [
     {
-      "username": "test-user",
+      "username": "test",
       "enabled": true,
       "emailVerified": true,
       "firstName": "Test",
@@ -94,7 +113,7 @@
       "credentials": [
         {
           "type": "password",
-          "value": "test123",
+          "value": "test",
           "temporary": false
         }
       ],
@@ -107,6 +126,24 @@
       "username": "service-account-transfer-service",
       "enabled": true,
       "serviceAccountClientId": "transfer-service",
+      "realmRoles": [
+        "SERVICE",
+        "ACCOUNTS_WRITE"
+      ]
+    },
+    {
+      "username": "service-account-accounts-service",
+      "enabled": true,
+      "serviceAccountClientId": "accounts-service",
+      "realmRoles": [
+        "SERVICE",
+        "ACCOUNTS_WRITE"
+      ]
+    },
+    {
+      "username": "service-account-cash-service",
+      "enabled": true,
+      "serviceAccountClientId": "cash-service",
       "realmRoles": [
         "SERVICE",
         "ACCOUNTS_WRITE"
