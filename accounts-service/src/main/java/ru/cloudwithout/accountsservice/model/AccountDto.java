@@ -1,4 +1,4 @@
-package ru.cloudwithout.bankui.controller.dto;
+package ru.cloudwithout.accountsservice.model;
 
 public record AccountDto(String login, String name) {
 }
