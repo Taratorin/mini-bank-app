@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:18.3
+    container_name: bank-app-postgres
+    environment:
+      POSTGRES_DB: bank-app
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: sa
+    ports:
+      - "5434:5432"
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.6
+    container_name: bank-app-keycloak
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    command: start-dev --import-realm
+    volumes:
+      - ./bank-realm-realm.json:/opt/keycloak/data/import/bank-realm-realm.json
+    ports:
+      - "8080:8080"
