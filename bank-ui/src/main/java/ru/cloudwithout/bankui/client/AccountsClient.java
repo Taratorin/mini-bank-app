@@ -42,18 +42,17 @@ public class AccountsClient {
     }
 
     public CommonResponse editAccount(String login, String name, LocalDate birthdate) {
-        URI uri = UriComponentsBuilder.fromUriString(gatewayBaseUrl)
-                .path("/accounts/edit")
-                .queryParam("login", login)
-                .queryParam("name", name)
-                .queryParam("birthdate", birthdate)
-                .build()
-                .toUri();
-        log.info("Отправляем запрос на изменение профиля: login={}, имя={}, дата рождения={}, адрес={}",
-                login, name, birthdate, uri);
         CommonResponse response = gatewayWebClient
                 .post()
-                .uri(uri)
+                .uri(uriBuilder -> uriBuilder
+                        .scheme("http")
+                        .host("localhost")
+                        .port(8081)
+                        .path("/accounts/edit")
+                        .queryParam("login", login)
+                        .queryParam("name", name)
+                        .queryParam("birthdate", birthdate)
+                        .build())
                 .attributes(clientRegistrationId("accounts-service"))
                 .retrieve()
                 .bodyToMono(CommonResponse.class)
