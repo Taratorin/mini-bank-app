@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.cloudwithout.accountsservice.client.NotificationsClient;
 import ru.cloudwithout.accountsservice.model.Account;
 import ru.cloudwithout.accountsservice.model.AccountDto;
 import ru.cloudwithout.accountsservice.model.CashAction;
@@ -20,6 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AccountService {
     private final AccountRepository accountRepository;
+    private final NotificationsClient notificationsClient;
 
     public CommonResponse getAccount(String login) {
         Account account = accountRepository.findByLogin(login)
@@ -34,6 +36,7 @@ public class AccountService {
         account.setFirstLastName(name);
         account.setBirthDate(birthdate);
         accountRepository.save(account);
+        sendNotificationSafely("edit-account", "Профиль пользователя " + login + " обновлён");
 
         return getcommonResponse(login, account, null, null);
     }
@@ -48,7 +51,11 @@ public class AccountService {
         List<String> errors = new ArrayList<>();
         String info = null;
         if (action == CashAction.GET && sum.compareTo(BigDecimal.valueOf(value)) < 0) {
-            errors.add("Недостаточно средств на счету");
+            errors.add("Недостаточно средств на счёте");
+            sendNotificationSafely(
+                    "cash-" + action.name().toLowerCase(),
+                    "Операция отклонена для " + login + ": недостаточно средств"
+            );
         } else {
             sum = action == CashAction.GET
                     ? sum.subtract(BigDecimal.valueOf(value))
@@ -56,9 +63,37 @@ public class AccountService {
             account.setSum(sum);
             accountRepository.save(account);
             info = action == CashAction.GET ? "Снято руб.: " + value : "Положено руб.: " + value;
+            sendNotificationSafely("cash-" + action.name().toLowerCase(), "Операция для " + login + ": " + info);
         }
 
         return getcommonResponse(login, account, errors, info);
+    }
+
+    @Transactional
+    public CommonResponse transfer(String from, int value, String to) {
+        Account accountFrom = accountRepository.findByLogin(from)
+                .orElseThrow(() -> new IllegalArgumentException("Аккаунт не найден: " + from));
+        Account accountTo = accountRepository.findByLogin(to)
+                .orElseThrow(() -> new IllegalArgumentException("Аккаунт не найден: " + to));
+
+        BigDecimal sumFrom = accountFrom.getSum();
+        BigDecimal sumTo = accountTo.getSum();
+
+        List<String> errors = new ArrayList<>();
+        String info = null;
+        if (sumFrom.compareTo(BigDecimal.valueOf(value)) < 0) {
+            errors.add("Недостаточно средств на счёте");
+            sendNotificationSafely("transfer", "Перевод отклонён для " + from + ": недостаточно средств");
+        } else {
+            sumFrom = sumFrom.subtract(BigDecimal.valueOf(value));
+            accountFrom.setSum(sumFrom);
+            accountTo.setSum(sumTo.add(BigDecimal.valueOf(value)));
+            accountRepository.saveAll(List.of(accountFrom, accountTo));
+            info = "Перевод выполнен успешно";
+            sendNotificationSafely("transfer", "Перевод выполнен: from=" + from + ", to=" + to + ", value=" + value);
+        }
+
+        return getcommonResponse(from, accountFrom, errors, info);
     }
 
     private CommonResponse getcommonResponse(String login, Account account, List<String> errors, String info) {
@@ -76,5 +111,13 @@ public class AccountService {
                 .errors(errors)
                 .info(info)
                 .build();
+    }
+
+    private void sendNotificationSafely(String operation, String message) {
+        try {
+            notificationsClient.send(operation, message);
+        } catch (Exception exception) {
+            log.warn("Не удалось отправить уведомление: operation={}, message={}", operation, message, exception);
+        }
     }
 }

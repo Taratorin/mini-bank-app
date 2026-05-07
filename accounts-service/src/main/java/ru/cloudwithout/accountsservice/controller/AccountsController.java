@@ -46,4 +46,15 @@ public class AccountsController {
         log.info("Операция со счетом выполнена для пользователя {}", login);
         return response;
     }
+
+
+    @PostMapping("/transfer")
+    @PreAuthorize("hasRole('SERVICE')")
+    public CommonResponse transfer(@RequestParam String from,
+                                   @RequestParam int value, @RequestParam String to) {
+        log.info("Получен запрос на перевод: from={}, to={}, value={}", from, to, value);
+        CommonResponse response = accountService.transfer(from, value, to);
+        log.info("Запрос на перевод обработан: from={}, to={}, value={}", from, to, value);
+        return response;
+    }
 }
