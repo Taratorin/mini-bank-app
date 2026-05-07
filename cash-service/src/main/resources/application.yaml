@@ -1,47 +1,22 @@
-server:
-  port: 8085
-
-bank:
-  accounts:
-    base-url: http://localhost:8083
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: "*"
-
-logging:
-  level:
-    root: INFO
-
 spring:
+  config:
+    import: "optional:consul:"
   application:
     name: cash-service
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: http://localhost:8080/realms/bank-realm
-      client:
-        registration:
-          keycloak:
-            client-id: cash-service
-            client-secret: cash-service-secret
-            authorization-grant-type: authorization_code
-            scope: openid, profile
-            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-            provider: keycloak
-          cash-service:
-            client-id: cash-service
-            client-secret: cash-service-secret
-            authorization-grant-type: client_credentials
-            provider: keycloak
-          accounts-service:
-            client-id: accounts-service
-            client-secret: accounts-service-secret
-            authorization-grant-type: client_credentials
-            provider: keycloak
-        provider:
-          keycloak:
-            issuer-uri: http://localhost:8080/realms/bank-realm
+  cloud:
+    consul:
+      host: ${CONSUL_HOST:localhost}
+      port: ${CONSUL_PORT:8500}
+      discovery:
+        enabled: true
+        register: true
+        health-check-path: /actuator/health
+      config:
+        enabled: true
+        format: yaml
+        prefixes:
+          - config
+        default-context: application
+        fail-fast: false
+        watch:
+          enabled: false

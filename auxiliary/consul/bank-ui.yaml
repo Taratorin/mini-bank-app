@@ -1,0 +1,65 @@
+server:
+  port: 8084
+
+bank:
+  gateway:
+    base-url: http://bank-gateway:8081
+
+logging:
+  level:
+    root: INFO
+    ru.cloudwithout.bankui: DEBUG
+    org.springframework.web.reactive.function.client: DEBUG
+    reactor.netty.http.client: DEBUG
+
+spring:
+  config:
+    import: "optional:consul:"
+  application:
+    name: bank-ui
+  cloud:
+    consul:
+      host: ${CONSUL_HOST:consul}
+      port: ${CONSUL_PORT:8500}
+      discovery:
+        enabled: true
+        register: true
+        health-check-path: /actuator/health
+      config:
+        enabled: true
+        format: yaml
+        prefixes:
+          - config
+        default-context: application
+        fail-fast: false
+        watch:
+          enabled: false
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            client-id: bank-ui
+            client-secret: ui-client-secret
+            authorization-grant-type: authorization_code
+            scope: openid, profile
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            provider: keycloak
+          accounts-service:
+            client-id: accounts-service
+            client-secret: accounts-service-secret
+            authorization-grant-type: client_credentials
+            provider: keycloak
+          cash-service:
+            client-id: cash-service
+            client-secret: cash-service-secret
+            authorization-grant-type: client_credentials
+            provider: keycloak
+          transfer-service:
+            client-id: transfer-service
+            client-secret: transfer-service-secret
+            authorization-grant-type: client_credentials
+            provider: keycloak
+        provider:
+          keycloak:
+            issuer-uri: http://keycloak:8080/realms/bank-realm

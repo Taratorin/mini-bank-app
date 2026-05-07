@@ -2,10 +2,10 @@ spring:
   config:
     import: "optional:consul:"
   application:
-    name: bank-gateway
+    name: notifications-service
   cloud:
     consul:
-      host: ${CONSUL_HOST:localhost}
+      host: ${CONSUL_HOST:consul}
       port: ${CONSUL_PORT:8500}
       discovery:
         enabled: true
@@ -20,3 +20,17 @@ spring:
         fail-fast: false
         watch:
           enabled: false
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://keycloak:8080/realms/bank-realm
+
+server:
+  port: 8087
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

@@ -1,0 +1,65 @@
+server:
+  port: 8083
+
+bank:
+  notifications:
+    base-url: http://notifications-service:8087
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+logging:
+  level:
+    root: INFO
+
+spring:
+  config:
+    import: "optional:consul:"
+  application:
+    name: accounts-service
+  cloud:
+    consul:
+      host: ${CONSUL_HOST:consul}
+      port: ${CONSUL_PORT:8500}
+      discovery:
+        enabled: true
+        register: true
+        health-check-path: /actuator/health
+      config:
+        enabled: true
+        format: yaml
+        prefixes:
+          - config
+        default-context: application
+        fail-fast: false
+        watch:
+          enabled: false
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://keycloak:8080/realms/bank-realm
+      client:
+        registration:
+          accounts-service:
+            client-id: accounts-service
+            client-secret: accounts-service-secret
+            authorization-grant-type: client_credentials
+            provider: keycloak
+        provider:
+          keycloak:
+            issuer-uri: http://keycloak:8080/realms/bank-realm
+
+  datasource:
+    url: jdbc:postgresql://postgres:5432/bank-app?currentSchema=accounts
+    username: user
+    password: sa
+
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+      data-locations: classpath:data.sql

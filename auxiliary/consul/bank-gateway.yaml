@@ -1,0 +1,58 @@
+server:
+  port: 8081
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+logging:
+  level:
+    root: INFO
+    org.springframework.security: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+
+spring:
+  config:
+    import: "optional:consul:"
+  application:
+    name: bank-gateway
+  cloud:
+    consul:
+      host: ${CONSUL_HOST:consul}
+      port: ${CONSUL_PORT:8500}
+      discovery:
+        enabled: true
+        register: true
+        health-check-path: /actuator/health
+      config:
+        enabled: true
+        format: yaml
+        prefixes:
+          - config
+        default-context: application
+        fail-fast: false
+        watch:
+          enabled: false
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: accounts-service
+              uri: http://accounts-service:8083
+              predicates:
+                - Path=/accounts/**
+            - id: cash-service
+              uri: http://cash-service:8085
+              predicates:
+                - Path=/cash/**
+            - id: transfer-service
+              uri: http://transfer-service:8086
+              predicates:
+                - Path=/transfer/**
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://keycloak:8080/realms/bank-realm
