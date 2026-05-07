@@ -14,7 +14,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
 @Slf4j
-
 public class WebClientConfig {
 
     @Bean
