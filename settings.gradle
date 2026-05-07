@@ -1,10 +1,8 @@
 rootProject.name = 'mini-bank-app'
 
-include(
-        "bank-ui",
-        "bank-gateway",
-        "transfer-service",
-        "accounts-service",
-        "cash-service",
-        "notifications-service"
-)
+include 'bank-ui'
+include 'bank-gateway'
+include 'accounts-service'
+include 'cash-service'
+include 'transfer-service'
+include 'notifications-service'
