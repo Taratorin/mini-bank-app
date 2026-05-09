@@ -1,5 +1,6 @@
 package ru.cloudwithout.transferservice.client;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,6 +10,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import ru.cloudwithout.transferservice.model.CommonResponse;
 
 import java.net.URI;
+import java.util.List;
 
 import static org.springframework.security.oauth2.client.web.ClientAttributes.clientRegistrationId;
 
@@ -23,6 +25,7 @@ public class AccountsClient {
     @Value("${bank.accounts.base-url}")
     private String accountsBaseUrl;
 
+    @CircuitBreaker(name = "accountsClient", fallbackMethod = "transferFallback")
     public CommonResponse transfer(String from, int value, String to) {
         URI uri = UriComponentsBuilder.fromUriString(accountsBaseUrl)
                 .path("/accounts/transfer")
@@ -41,6 +44,13 @@ public class AccountsClient {
                 .bodyToMono(CommonResponse.class)
                 .block();
         log.info("Получили ответ по операции со счетом пользователя {}", from);
+        return response;
+    }
+
+    private CommonResponse transferFallback(String from, int value, String to, Throwable throwable) {
+        log.warn("accounts-service временно недоступен: from={}, to={}, value={}", from, to, value, throwable);
+        CommonResponse response = new CommonResponse(List.of());
+        response.setErrors(List.of("Сервис аккаунтов временно недоступен, перевод не выполнен"));
         return response;
     }
 }

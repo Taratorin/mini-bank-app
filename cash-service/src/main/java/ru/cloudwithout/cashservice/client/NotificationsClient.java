@@ -1,5 +1,7 @@
 package ru.cloudwithout.cashservice.client;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +24,8 @@ public class NotificationsClient {
     @Value("${bank.notifications.base-url}")
     private String notificationsBaseUrl;
 
+    @CircuitBreaker(name = "notificationsClient", fallbackMethod = "sendFallback")
+    @Retry(name = "notificationsClient", fallbackMethod = "sendFallback")
     public void send(String operation, String message) {
         URI uri = UriComponentsBuilder.fromUriString(notificationsBaseUrl)
                 .path("/notifications")
@@ -38,5 +42,9 @@ public class NotificationsClient {
                 .toBodilessEntity()
                 .block();
         log.info("Уведомление отправлено: operation={}", operation);
+    }
+
+    private void sendFallback(String operation, String message, Throwable throwable) {
+        log.warn("Не удалось отправить уведомление: operation={}, message={}", operation, message, throwable);
     }
 }
