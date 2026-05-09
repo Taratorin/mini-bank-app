@@ -20,7 +20,7 @@ spring:
     name: bank-gateway
   cloud:
     consul:
-      host: ${CONSUL_HOST:consul}
+      host: ${CONSUL_HOST:localhost}
       port: ${CONSUL_PORT:8500}
       discovery:
         enabled: true
@@ -40,19 +40,19 @@ spring:
         webflux:
           routes:
             - id: accounts-service
-              uri: http://accounts-service:8083
+              uri: http://localhost:8083
               predicates:
                 - Path=/accounts/**
             - id: cash-service
-              uri: http://cash-service:8085
+              uri: http://localhost:8085
               predicates:
                 - Path=/cash/**
             - id: transfer-service
-              uri: http://transfer-service:8086
+              uri: http://localhost:8086
               predicates:
                 - Path=/transfer/**
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://keycloak:8080/realms/bank-realm
+          issuer-uri: http://localhost:8080/realms/bank-realm

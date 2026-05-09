@@ -3,14 +3,14 @@ server:
 
 bank:
   gateway:
-    base-url: http://bank-gateway:8081
+    base-url: http://localhost:8081
 
 logging:
   level:
     root: INFO
-    ru.cloudwithout.bankui: DEBUG
-    org.springframework.web.reactive.function.client: DEBUG
-    reactor.netty.http.client: DEBUG
+#    ru.cloudwithout.bankui: DEBUG
+#    org.springframework.web.reactive.function.client: DEBUG
+#    reactor.netty.http.client: DEBUG
 
 spring:
   config:
@@ -19,7 +19,7 @@ spring:
     name: bank-ui
   cloud:
     consul:
-      host: ${CONSUL_HOST:consul}
+      host: ${CONSUL_HOST:localhost}
       port: ${CONSUL_PORT:8500}
       discovery:
         enabled: true
@@ -62,4 +62,28 @@ spring:
             provider: keycloak
         provider:
           keycloak:
-            issuer-uri: http://keycloak:8080/realms/bank-realm
+            issuer-uri: http://localhost:8080/realms/bank-realm
+
+resilience4j:
+  retry:
+    instances:
+      accountsClient:
+        maxAttempts: 3
+        waitDuration: 500ms
+  circuitbreaker:
+    instances:
+      accountsClient:
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+      cashClient:
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+      transferClient:
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s

@@ -3,9 +3,9 @@ server:
 
 bank:
   accounts:
-    base-url: http://accounts-service:8083
+    base-url: http://localhost:8083
   notifications:
-    base-url: http://notifications-service:8087
+    base-url: http://localhost:8087
 
 management:
   endpoints:
@@ -24,7 +24,7 @@ spring:
     name: transfer-service
   cloud:
     consul:
-      host: ${CONSUL_HOST:consul}
+      host: ${CONSUL_HOST:localhost}
       port: ${CONSUL_PORT:8500}
       discovery:
         enabled: true
@@ -43,7 +43,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://keycloak:8080/realms/bank-realm
+          issuer-uri: http://localhost:8080/realms/bank-realm
       client:
         registration:
           keycloak:
@@ -70,4 +70,23 @@ spring:
             provider: keycloak
         provider:
           keycloak:
-            issuer-uri: http://keycloak:8080/realms/bank-realm
+            issuer-uri: http://localhost:8080/realms/bank-realm
+
+resilience4j:
+  retry:
+    instances:
+      notificationsClient:
+        maxAttempts: 3
+        waitDuration: 500ms
+  circuitbreaker:
+    instances:
+      accountsClient:
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+      notificationsClient:
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
