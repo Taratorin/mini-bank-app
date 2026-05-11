@@ -1,0 +1,36 @@
+spring:
+  config:
+    import: "optional:consul:"
+  application:
+    name: notifications-service
+  cloud:
+    consul:
+      host: ${CONSUL_HOST:localhost}
+      port: ${CONSUL_PORT:8500}
+      discovery:
+        enabled: true
+        register: true
+        health-check-path: /actuator/health
+      config:
+        enabled: true
+        format: yaml
+        prefixes:
+          - config
+        default-context: application
+        fail-fast: false
+        watch:
+          enabled: false
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/bank-realm
+
+server:
+  port: 8087
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

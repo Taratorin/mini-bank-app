@@ -1,3 +1,22 @@
 spring:
+  config:
+    import: "optional:consul:"
   application:
     name: accounts-service
+  cloud:
+    consul:
+      host: ${CONSUL_HOST:localhost}
+      port: ${CONSUL_PORT:8500}
+      discovery:
+        enabled: true
+        register: true
+        health-check-path: /actuator/health
+      config:
+        enabled: true
+        format: yaml
+        prefixes:
+          - config
+        default-context: application
+        fail-fast: false
+        watch:
+          enabled: false
