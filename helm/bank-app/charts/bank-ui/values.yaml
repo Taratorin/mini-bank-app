@@ -1,0 +1,22 @@
+replicaCount: 1
+
+image:
+  repository: bank-ui
+  tag: latest
+  pullPolicy: Never
+
+service:
+  type: NodePort
+  port: 8084
+  nodePort: 30277
+
+container:
+  port: 8084
+
+keycloak:
+  issuerUri: http://172.18.0.1:8080/realms/bank-realm
+
+logging:
+  level:
+    root: INFO
+    org.springframework.security: DEBUG

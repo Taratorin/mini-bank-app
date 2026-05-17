@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-bank-ui
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: bank-ui
+  template:
+    metadata:
+      labels:
+        app: bank-ui
+    spec:
+      containers:
+        - name: bank-ui
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+          ports:
+            - containerPort: {{ .Values.container.port }}
+          env:
+            - name: SERVER_PORT
+              value: "{{ .Values.container.port }}"
+            - name: KEYCLOAK_ISSUER_URI
+              value: "{{ .Values.keycloak.issuerUri }}"

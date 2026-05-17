@@ -1,146 +1,134 @@
 package ru.cloudwithout.bankui.controller;
 
-import jakarta.validation.constraints.Positive;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import ru.cloudwithout.bankui.client.AccountsClient;
-import ru.cloudwithout.bankui.client.CashClient;
-import ru.cloudwithout.bankui.client.TransferClient;
-import ru.cloudwithout.bankui.exception.UiModelException;
-import ru.cloudwithout.bankui.model.CommonResponse;
-import ru.cloudwithout.bankui.model.MainPageModelFiller;
+import ru.cloudwithout.bankui.controller.stub.AccountStub;
 import ru.cloudwithout.bankui.model.dto.CashAction;
 
 import java.time.LocalDate;
-import java.util.List;
 
-import static java.time.temporal.ChronoUnit.YEARS;
-
+/**
+ * Контроллер main.html.
+ *
+ * Используемая модель для main.html:
+ *      model.addAttribute("name", name);
+ *      model.addAttribute("birthdate", birthdate.format(DateTimeFormatter.ISO_DATE));
+ *      model.addAttribute("sum", sum);
+ *      model.addAttribute("accounts", accounts);
+ *      model.addAttribute("errors", errors);
+ *      model.addAttribute("info", info);
+ *
+ * Поля модели:
+ *      name - Фамилия Имя текущего пользователя, String (обязательное)
+ *      birthdate - дата рождения текущего пользователя, String в формате 'YYYY-MM-DD' (обязательное)
+ *      sum - сумма на счету текущего пользователя, Integer (обязательное)
+ *      accounts - список аккаунтов, которым можно перевести деньги, List<AccountDto> (обязательное)
+ *      errors - список ошибок после выполнения действий, List<String> (не обязательное)
+ *      info - строка успешности после выполнения действия, String (не обязательное)
+ *
+ * С примерами использования можно ознакомиться в тестовом классе заглушке AccountStub
+ */
 @Controller
-@RequiredArgsConstructor
-@Slf4j
 public class MainController {
+    // TODO: Удалить заглушку, так как используется только для ознакомительных целей
+    @Autowired
+    private AccountStub accountStub;
 
-    private final AccountsClient accountsClient;
-    private final CashClient cashClient;
-    private final TransferClient transferClient;
-    private final MainPageModelFiller mainPageModelFiller;
-
+    /**
+     * GET /.
+     * Редирект на GET /account
+     */
     @GetMapping
     public String index() {
         return "redirect:/account";
     }
 
+    /**
+     * GET /account.
+     * Что нужно сделать:
+     * 1. Сходить в сервис accounts через Gateway API для получения данных аккаунта по REST
+     * 2. Заполнить модель main.html полученными из ответа данными
+     * 3. Текущего пользователя можно получить из контекста Security
+     */
     @GetMapping("/account")
-    public String getAccount(Model model, @AuthenticationPrincipal OidcUser oidcUser) {
-        String login = oidcUser.getPreferredUsername();
-        log.info("Открываем страницу аккаунта пользователя {}", login);
-        if (login == null) {
-            throw new UiModelException("Login отсутствует в аутентифицированном запросе");
-        } else {
-            CommonResponse resp = accountsClient.getAccountByLogin(login);
-            if (resp == null) {
-                throw new UiModelException("accounts-service вернул пустой ответ");
-            } else {
-                mainPageModelFiller.fillModel(model, resp, null, null);
-            }
-        }
-        log.info("Страница аккаунта подготовлена для пользователя {}", login);
+    public String getAccount(Model model) {
+        // TODO: Заменить на то, что описано в комментарии к методу
+        accountStub.fillModel(model, null, null);
+
         return "main";
     }
 
+    /**
+     * POST /account.
+     * Что нужно сделать:
+     * 1. Сходить в сервис accounts через Gateway API для изменения данных текущего пользователя по REST
+     * 2. Заполнить модель main.html полученными из ответа данными
+     * 3. Текущего пользователя можно получить из контекста Security
+     *
+     * Изменяемые данные:
+     * 1. name - Фамилия Имя
+     * 2. birthdate - дата рождения в формате YYYY-DD-MM
+     */
     @PostMapping("/account")
     public String editAccount(
-            Model model, @AuthenticationPrincipal OidcUser oidcUser,
-            @RequestParam("name") String name, @RequestParam("birthdate") LocalDate birthdate
+            Model model,
+            @RequestParam("name") String name,
+            @RequestParam("birthdate") LocalDate birthdate
     ) {
-        String login = oidcUser.getPreferredUsername();
-        log.info("Запрос на изменение профиля: login={}, имя={}, дата рождения={}", login, name, birthdate);
-        if (login == null) {
-            throw new UiModelException("Login отсутствует в аутентифицированном запросе");
-        } else {
-            if (isBirthdayNotValid(birthdate)) {
-                throw new UiModelException(
-                        List.of("birthday is not valid"),
-                        "user's age must be between 18 and 120 years old"
-                );
-            } else {
-                CommonResponse resp = accountsClient.editAccount(login, name, birthdate);
-                if (resp == null) {
-                    throw new UiModelException("accounts-service вернул пустой ответ");
-                } else {
-                    mainPageModelFiller.fillModel(model, resp, null, null);
-                }
-            }
-        }
-        log.info("Данные профиля обновлены для пользователя {}", login);
+        // TODO: Заменить на то, что описано в комментарии к методу
+        accountStub.setNameAndBirthdate(name, birthdate);
+        accountStub.fillModel(model, null, null);
+
         return "main";
     }
 
+    /**
+     * POST /cash.
+     * Что нужно сделать:
+     * 1. Сходить в сервис cash через Gateway API для снятия/пополнения счета текущего аккаунта по REST
+     * 2. Заполнить модель main.html полученными из ответа данными
+     * 3. Текущего пользователя можно получить из контекста Security
+     *
+     * Параметры:
+     * 1. value - сумма списания
+     * 2. action - GET (снять), PUT (пополнить)
+     */
     @PostMapping("/cash")
     public String editCash(
-            Model model, @AuthenticationPrincipal OidcUser oidcUser,
-            @RequestParam("value") @Positive int value,
+            Model model,
+            @RequestParam("value") int value,
             @RequestParam("action") CashAction action
-    ) {
-        String login = oidcUser.getPreferredUsername();
-        log.info("Запрос по операции со счетом: login={}, сумма={}, действие={}", login, value, action);
-        if (login == null) {
-            throw new UiModelException("Login отсутствует в аутентифицированном запросе");
-        } else {
-            CommonResponse resp = cashClient.editCash(login, value, action);
-            if (resp == null) {
-                throw new UiModelException("cash-service вернул пустой ответ");
-            } else {
-                if (!resp.getErrors().isEmpty()) {
-                    mainPageModelFiller.fillModel(model, resp, resp.getErrors(), null);
-                } else {
-                    mainPageModelFiller.fillModel(model, resp, null, resp.getInfo());
-                }
-            }
-        }
-        log.info("Операция со счетом обработана для пользователя {}", login);
+            ) {
+        // TODO: Заменить на то, что описано в комментарии к методу
+        accountStub.editCash(model, value, action);
+
         return "main";
     }
 
+    /**
+     * POST /transfer.
+     * Что нужно сделать:
+     * 1. Сходить в сервис accounts через Gateway API для перевода со счета текущего аккаунта на счет другого аккаунта по REST
+     * 2. Заполнить модель main.html полученными из ответа данными
+     * 3. Текущего пользователя можно получить из контекста Security
+     *
+     * Параметры:
+     * 1. value - сумма списания
+     * 2. login - логин пользователя получателя
+     */
     @PostMapping("/transfer")
     public String transfer(
-            Model model, @AuthenticationPrincipal OidcUser oidcUser,
-            @RequestParam("value") @Positive int value,
+            Model model,
+            @RequestParam("value") int value,
             @RequestParam("login") String login
     ) {
-        String from = oidcUser.getPreferredUsername();
-        log.info("Запрос на перевод: from={}, to={}, сумма={}", from, login, value);
-        if (from == null) {
-            throw new UiModelException("Login отправителя отсутствует в аутентифицированном запросе");
-        }
-        if (login == null) {
-            throw new UiModelException("Login получателя отсутствует в запросе");
-        } else {
-            CommonResponse resp = transferClient.transfer(from, value, login);
-            if (resp == null) {
-                throw new UiModelException("transfer-service вернул пустой ответ");
-            } else {
-                if (!resp.getErrors().isEmpty()) {
-                    mainPageModelFiller.fillModel(model, resp, resp.getErrors(), null);
-                } else {
-                    mainPageModelFiller.fillModel(model, resp, null, resp.getInfo());
-                }
-            }
-        }
-        log.info("Перевод обработан: from={}, to={}, сумма={}", from, login, value);
-        return "main";
-    }
+        // TODO: Заменить на то, что описано в комментарии к методу
+        accountStub.transfer(model, value, login);
 
-    private boolean isBirthdayNotValid(LocalDate birthdate) {
-        long years = YEARS.between(birthdate, LocalDate.now());
-        return years < 18 || years > 120;
+        return "main";
     }
 }

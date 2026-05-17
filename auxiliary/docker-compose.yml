@@ -22,6 +22,9 @@ services:
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
       KC_HEALTH_ENABLED: "true"
       KC_METRICS_ENABLED: "true"
+      KC_HOSTNAME: http://172.18.0.1:8080
+      KC_HOSTNAME_STRICT: "false"
+      KC_HTTP_ENABLED: "true"
     command: start-dev --import-realm
     volumes:
       - ./bank-realm-realm.json:/opt/keycloak/data/import/bank-realm-realm.json
@@ -34,56 +37,6 @@ services:
       timeout: 5s
       retries: 20
       start_period: 40s
-
-  consul:
-    image: hashicorp/consul:1.21
-    container_name: bank-app-consul
-    command: agent -server -bootstrap-expect=1 -ui -client=0.0.0.0
-    ports:
-      - "8500:8500"
-    healthcheck:
-      test: [ "CMD", "consul", "info" ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-
-  consul-kv-init:
-    image: alpine:3.20
-    container_name: bank-app-consul-kv-init
-    depends_on:
-      consul:
-        condition: service_healthy
-    volumes:
-      - ./consul:/consul-seed:ro
-    entrypoint:
-      - /bin/sh
-      - -ec
-      - |
-        apk add --no-cache curl
-
-        echo "== files in /consul-seed =="
-        ls -la /consul-seed
-
-        [ -f /consul-seed/accounts-service.yaml ] || { echo "Missing /consul-seed/accounts-service.yaml"; exit 1; }
-        [ -f /consul-seed/cash-service.yaml ] || { echo "Missing /consul-seed/cash-service.yaml"; exit 1; }
-        [ -f /consul-seed/transfer-service.yaml ] || { echo "Missing /consul-seed/transfer-service.yaml"; exit 1; }
-        [ -f /consul-seed/bank-gateway.yaml ] || { echo "Missing /consul-seed/bank-gateway.yaml"; exit 1; }
-        [ -f /consul-seed/bank-ui.yaml ] || { echo "Missing /consul-seed/bank-ui.yaml"; exit 1; }
-        [ -f /consul-seed/notifications-service.yaml ] || { echo "Missing /consul-seed/notifications-service.yaml"; exit 1; }
-
-        until curl -fsS http://consul:8500/v1/status/leader >/dev/null; do
-          sleep 1
-        done
-
-        curl -fsS -X PUT --data-binary @/consul-seed/accounts-service.yaml      http://consul:8500/v1/kv/config/accounts-service/data
-        curl -fsS -X PUT --data-binary @/consul-seed/cash-service.yaml          http://consul:8500/v1/kv/config/cash-service/data
-        curl -fsS -X PUT --data-binary @/consul-seed/transfer-service.yaml      http://consul:8500/v1/kv/config/transfer-service/data
-        curl -fsS -X PUT --data-binary @/consul-seed/bank-gateway.yaml          http://consul:8500/v1/kv/config/bank-gateway/data
-        curl -fsS -X PUT --data-binary @/consul-seed/bank-ui.yaml               http://consul:8500/v1/kv/config/bank-ui/data
-        curl -fsS -X PUT --data-binary @/consul-seed/notifications-service.yaml http://consul:8500/v1/kv/config/notifications-service/data
-
-        echo "Consul KV seeded."
-    restart: "no"
 
 networks:
   default:

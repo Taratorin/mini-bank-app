@@ -48,11 +48,13 @@
       "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": false,
       "redirectUris": [
-        "http://localhost:8084/login/oauth2/code/*"
+        "http://localhost:8084/login/oauth2/code/*",
+        "http://localhost:30277/login/oauth2/code/*"
       ],
-      "baseUrl": "http://localhost:8084",
+      "baseUrl": "http://localhost:30277",
       "webOrigins": [
-        "http://localhost:8084"
+        "http://localhost:8084",
+        "http://localhost:30277"
       ],
       "defaultClientScopes": [
         "web-origins",
