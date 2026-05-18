@@ -15,11 +15,11 @@ spec:
       containers:
         - name: bank-ui
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.container.port }}
-          env:
-            - name: SERVER_PORT
-              value: "{{ .Values.container.port }}"
-            - name: KEYCLOAK_ISSUER_URI
-              value: "{{ .Values.keycloak.issuerUri }}"
+          envFrom:
+            - configMapRef:
+                name: {{ .Release.Name }}-bank-ui
+            - secretRef:
+                name: {{ .Release.Name }}-bank-ui

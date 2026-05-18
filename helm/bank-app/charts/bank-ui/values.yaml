@@ -16,7 +16,11 @@ container:
 keycloak:
   issuerUri: http://172.18.0.1:8080/realms/bank-realm
 
-logging:
-  level:
-    root: INFO
-    org.springframework.security: DEBUG
+gateway:
+  baseUrl: http://bank-app-bank-gateway:8081
+
+oauth:
+  keycloakClientSecret: ui-client-secret
+  accountsServiceClientSecret: accounts-service-secret
+  cashServiceClientSecret: cash-service-secret
+  transferServiceClientSecret: transfer-service-secret
