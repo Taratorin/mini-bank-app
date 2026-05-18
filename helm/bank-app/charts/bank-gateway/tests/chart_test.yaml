@@ -1,0 +1,29 @@
+suite: bank-gateway
+release:
+  name: bank-app
+templates:
+  - deployment.yaml
+  - service.yaml
+  - configmap.yaml
+tests:
+  - it: renders gateway deployment
+    template: deployment.yaml
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: metadata.name
+          value: bank-app-bank-gateway
+
+  - it: configures routes to microservices
+    template: configmap.yaml
+    asserts:
+      - equal:
+          path: data.ROUTES_ACCOUNTS_URI
+          value: http://bank-app-accounts-service:8083
+      - equal:
+          path: data.ROUTES_CASH_URI
+          value: http://bank-app-cash-service:8085
+      - equal:
+          path: data.ROUTES_TRANSFER_URI
+          value: http://bank-app-transfer-service:8086

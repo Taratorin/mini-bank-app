@@ -1,0 +1,33 @@
+suite: postgres
+release:
+  name: bank-app
+templates:
+  - statefulset.yaml
+  - service.yaml
+  - secret.yaml
+tests:
+  - it: renders postgres StatefulSet
+    template: statefulset.yaml
+    asserts:
+      - isKind:
+          of: StatefulSet
+      - equal:
+          path: metadata.name
+          value: bank-app-postgres
+      - equal:
+          path: spec.serviceName
+          value: bank-app-postgres
+
+  - it: requests persistent storage
+    template: statefulset.yaml
+    asserts:
+      - equal:
+          path: spec.volumeClaimTemplates[0].spec.resources.requests.storage
+          value: 10Mi
+
+  - it: exposes postgres port
+    template: service.yaml
+    asserts:
+      - equal:
+          path: spec.ports[0].port
+          value: 5432

@@ -1,0 +1,38 @@
+suite: bank-ui
+release:
+  name: bank-app
+templates:
+  - deployment.yaml
+  - service.yaml
+  - configmap.yaml
+tests:
+  - it: renders bank-ui deployment
+    template: deployment.yaml
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: metadata.name
+          value: bank-app-bank-ui
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: bank-ui:latest
+
+  - it: exposes UI via NodePort
+    template: service.yaml
+    asserts:
+      - isKind:
+          of: Service
+      - equal:
+          path: spec.type
+          value: NodePort
+      - equal:
+          path: spec.ports[0].nodePort
+          value: 30277
+
+  - it: points to gateway inside cluster
+    template: configmap.yaml
+    asserts:
+      - equal:
+          path: data.BANK_GATEWAY_BASE_URL
+          value: http://bank-app-bank-gateway:8081

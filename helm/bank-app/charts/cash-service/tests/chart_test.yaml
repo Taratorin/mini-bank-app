@@ -1,0 +1,18 @@
+suite: cash-service
+release:
+  name: bank-app
+templates:
+  - deployment.yaml
+  - service.yaml
+tests:
+  - it: renders cash-service deployment
+    template: deployment.yaml
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: metadata.name
+          value: bank-app-cash-service
+      - equal:
+          path: spec.template.spec.containers[0].ports[0].containerPort
+          value: 8085

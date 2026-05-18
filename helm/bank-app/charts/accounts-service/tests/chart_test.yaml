@@ -1,0 +1,44 @@
+suite: accounts-service
+release:
+  name: bank-app
+templates:
+  - deployment.yaml
+  - service.yaml
+  - configmap.yaml
+  - secret.yaml
+tests:
+  - it: renders accounts deployment
+    template: deployment.yaml
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: metadata.name
+          value: bank-app-accounts-service
+      - equal:
+          path: spec.template.spec.containers[0].ports[0].containerPort
+          value: 8083
+
+  - it: mounts application config from ConfigMap
+    template: deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.volumes[0].configMap.name
+          value: bank-app-accounts-service
+
+  - it: configures postgres and oauth in application.yaml
+    template: configmap.yaml
+    asserts:
+      - matchRegex:
+          path: 'data["application.yaml"]'
+          pattern: "jdbc:postgresql://bank-app-postgres:5432/bank-app"
+      - matchRegex:
+          path: 'data["application.yaml"]'
+          pattern: "issuer-uri: http://172.18.0.1:8080/realms/bank-realm"
+
+  - it: stores datasource password in secret
+    template: secret.yaml
+    asserts:
+      - equal:
+          path: stringData.SPRING_DATASOURCE_PASSWORD
+          value: sa
