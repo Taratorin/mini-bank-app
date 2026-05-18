@@ -64,6 +64,20 @@ class AccountServiceTest {
     }
 
     @Test
+    void editCashPutShouldReturnErrorWhenSumExceedsLimit() {
+        Account serg = account("serg", new BigDecimal("99999990.00"));
+        when(accountRepository.findByLogin("serg")).thenReturn(Optional.of(serg));
+        when(accountRepository.findAll()).thenReturn(List.of(serg));
+
+        CommonResponse response = accountService.editCash("serg", 20, CashAction.PUT);
+
+        assertThat(response.getSum()).isEqualByComparingTo("99999990.00");
+        assertThat(response.getErrors()).contains("Сумма на счёте превышает допустимый лимит (99 999 999,99 руб.)");
+        assertThat(response.getInfo()).isNull();
+        verify(accountRepository, never()).save(any(Account.class));
+    }
+
+    @Test
     void transferShouldMoveMoneyBetweenAccounts() {
         Account from = account("serg", new BigDecimal("500.00"));
         Account to = account("alex", new BigDecimal("100.00"));

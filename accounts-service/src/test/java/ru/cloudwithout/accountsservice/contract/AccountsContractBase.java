@@ -3,7 +3,6 @@ package ru.cloudwithout.accountsservice.contract;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -13,6 +12,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import ru.cloudwithout.accountsservice.model.CashAction;
 import ru.cloudwithout.accountsservice.model.CommonResponse;
 import ru.cloudwithout.accountsservice.service.AccountService;
+import ru.cloudwithout.accountsservice.support.AccountsIntegrationTest;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -20,9 +20,8 @@ import java.util.List;
 
 import static org.mockito.Mockito.when;
 
-@SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-public abstract class AccountsContractBase {
+public abstract class AccountsContractBase extends AccountsIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;

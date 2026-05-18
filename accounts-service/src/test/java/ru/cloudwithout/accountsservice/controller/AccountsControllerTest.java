@@ -2,7 +2,6 @@ package ru.cloudwithout.accountsservice.controller;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -10,6 +9,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import ru.cloudwithout.accountsservice.model.CashAction;
 import ru.cloudwithout.accountsservice.model.CommonResponse;
 import ru.cloudwithout.accountsservice.service.AccountService;
+import ru.cloudwithout.accountsservice.support.AccountsIntegrationTest;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -23,9 +23,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-class AccountsControllerTest {
+class AccountsControllerTest extends AccountsIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
