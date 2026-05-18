@@ -1,0 +1,26 @@
+replicaCount: 1
+
+image:
+  repository: transfer-service
+  tag: latest
+  pullPolicy: Never
+
+service:
+  type: ClusterIP
+  port: 8086
+
+container:
+  port: 8086
+
+keycloak:
+  issuerUri: http://172.18.0.1:8080/realms/bank-realm
+
+accounts:
+  baseUrl: http://bank-app-accounts-service:8083
+
+notifications:
+  baseUrl: http://bank-app-notifications-service:8087
+
+oauth:
+  clientId: transfer-service
+  clientSecret: transfer-service-secret
