@@ -6,3 +6,11 @@ nodes:
       - containerPort: 30277
         hostPort: 30277
         protocol: TCP
+
+# example of config applying and context turn
+#
+#  kind create cluster \
+#  --name mini-bank \
+#  --config auxiliary/kind-config.yaml
+#
+#  kubectl config use-context kind-mini-bank
