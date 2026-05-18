@@ -1,22 +1,28 @@
 spring:
-  config:
-    import: "optional:consul:"
   application:
     name: bank-gateway
   cloud:
-    consul:
-      host: ${CONSUL_HOST:localhost}
-      port: ${CONSUL_PORT:8500}
-      discovery:
-        enabled: true
-        register: true
-        health-check-path: /actuator/health
-      config:
-        enabled: true
-        format: yaml
-        prefixes:
-          - config
-        default-context: application
-        fail-fast: false
-        watch:
-          enabled: false
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: accounts-service
+              uri: ${ROUTES_ACCOUNTS_URI:http://localhost:8083}
+              predicates:
+                - Path=/accounts/**
+            - id: cash-service
+              uri: ${ROUTES_CASH_URI:http://localhost:8085}
+              predicates:
+                - Path=/cash/**
+            - id: transfer-service
+              uri: ${ROUTES_TRANSFER_URI:http://localhost:8086}
+              predicates:
+                - Path=/transfer/**
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://172.18.0.1:8080/realms/bank-realm}
+
+server:
+  port: ${SERVER_PORT:8081}

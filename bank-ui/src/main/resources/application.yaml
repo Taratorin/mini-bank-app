@@ -17,6 +17,16 @@ spring:
             client-secret: accounts-service-secret
             authorization-grant-type: client_credentials
             provider: keycloak
+          cash-service:
+            client-id: cash-service
+            client-secret: cash-service-secret
+            authorization-grant-type: client_credentials
+            provider: keycloak
+          transfer-service:
+            client-id: transfer-service
+            client-secret: transfer-service-secret
+            authorization-grant-type: client_credentials
+            provider: keycloak
         provider:
           keycloak:
             issuer-uri: ${KEYCLOAK_ISSUER_URI:http://172.18.0.1:8080/realms/bank-realm}
