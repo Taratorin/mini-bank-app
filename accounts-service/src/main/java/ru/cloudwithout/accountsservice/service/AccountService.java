@@ -20,6 +20,9 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class AccountService {
+
+    private static final BigDecimal MAX_SUM = new BigDecimal("99999999.99");
+
     private final AccountRepository accountRepository;
     private final NotificationsClient notificationsClient;
 
@@ -57,13 +60,21 @@ public class AccountService {
                     "Операция отклонена для " + login + ": недостаточно средств"
             );
         } else {
-            sum = action == CashAction.GET
+            BigDecimal newSum = action == CashAction.GET
                     ? sum.subtract(BigDecimal.valueOf(value))
                     : sum.add(BigDecimal.valueOf(value));
-            account.setSum(sum);
-            accountRepository.save(account);
-            info = action == CashAction.GET ? "Снято руб.: " + value : "Положено руб.: " + value;
-            sendNotificationSafely("cash-" + action.name().toLowerCase(), "Операция для " + login + ": " + info);
+            if (newSum.compareTo(MAX_SUM) > 0) {
+                errors.add("Сумма на счёте превышает допустимый лимит (99 999 999,99 руб.)");
+                sendNotificationSafely(
+                        "cash-" + action.name().toLowerCase(),
+                        "Операция отклонена для " + login + ": превышен лимит счёта"
+                );
+            } else {
+                account.setSum(newSum);
+                accountRepository.save(account);
+                info = action == CashAction.GET ? "Снято руб.: " + value : "Положено руб.: " + value;
+                sendNotificationSafely("cash-" + action.name().toLowerCase(), "Операция для " + login + ": " + info);
+            }
         }
 
         return getcommonResponse(login, account, errors, info);
@@ -85,12 +96,18 @@ public class AccountService {
             errors.add("Недостаточно средств на счёте");
             sendNotificationSafely("transfer", "Перевод отклонён для " + from + ": недостаточно средств");
         } else {
-            sumFrom = sumFrom.subtract(BigDecimal.valueOf(value));
-            accountFrom.setSum(sumFrom);
-            accountTo.setSum(sumTo.add(BigDecimal.valueOf(value)));
-            accountRepository.saveAll(List.of(accountFrom, accountTo));
-            info = "Перевод выполнен успешно";
-            sendNotificationSafely("transfer", "Перевод выполнен: from=" + from + ", to=" + to + ", value=" + value);
+            BigDecimal newSumFrom = sumFrom.subtract(BigDecimal.valueOf(value));
+            BigDecimal newSumTo = sumTo.add(BigDecimal.valueOf(value));
+            if (newSumTo.compareTo(MAX_SUM) > 0) {
+                errors.add("Сумма на счёте получателя превышает допустимый лимит (99 999 999,99 руб.)");
+                sendNotificationSafely("transfer", "Перевод отклонён для " + to + ": превышен лимит счёта");
+            } else {
+                accountFrom.setSum(newSumFrom);
+                accountTo.setSum(newSumTo);
+                accountRepository.saveAll(List.of(accountFrom, accountTo));
+                info = "Перевод выполнен успешно";
+                sendNotificationSafely("transfer", "Перевод выполнен: from=" + from + ", to=" + to + ", value=" + value);
+            }
         }
 
         return getcommonResponse(from, accountFrom, errors, info);
