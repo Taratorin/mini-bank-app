@@ -1,0 +1,7 @@
+image: postgres:18.3
+
+database: bank-app
+username: user
+password: sa
+
+storage: 10Mi
