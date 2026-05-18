@@ -1,0 +1,16 @@
+replicaCount: 1
+
+image:
+  repository: notifications-service
+  tag: latest
+  pullPolicy: Never
+
+service:
+  type: ClusterIP
+  port: 8087
+
+container:
+  port: 8087
+
+keycloak:
+  issuerUri: http://172.18.0.1:8080/realms/bank-realm
