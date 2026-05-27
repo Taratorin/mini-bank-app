@@ -20,6 +20,8 @@ public class Account {
     private String login;
     private String firstLastName;
     private LocalDate birthDate;
+
+    @Column(precision = 10, scale = 2)
     private BigDecimal sum;
 
 }

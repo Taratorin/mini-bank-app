@@ -4,9 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import ru.cloudwithout.accountsservice.model.CashAction;
-import ru.cloudwithout.accountsservice.model.CommonResponse;
 import ru.cloudwithout.accountsservice.service.AccountService;
+import ru.cloudwithout.commonmodels.common.dto.CashAction;
+import ru.cloudwithout.commonmodels.common.dto.CommonResponse;
 
 import java.time.LocalDate;
 

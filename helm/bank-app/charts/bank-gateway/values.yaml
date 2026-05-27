@@ -1,0 +1,21 @@
+replicaCount: 1
+
+image:
+  repository: bank-gateway
+  tag: latest
+  pullPolicy: Never
+
+service:
+  type: ClusterIP
+  port: 8081
+
+container:
+  port: 8081
+
+keycloak:
+  issuerUri: http://172.18.0.1:8080/realms/bank-realm
+
+routes:
+  accountsUri: http://bank-app-accounts-service:8083
+  cashUri: http://bank-app-cash-service:8085
+  transferUri: http://bank-app-transfer-service:8086

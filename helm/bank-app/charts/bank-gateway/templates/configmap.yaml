@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-bank-gateway
+data:
+  SERVER_PORT: {{ .Values.container.port | quote }}
+  KEYCLOAK_ISSUER_URI: {{ .Values.keycloak.issuerUri | quote }}
+  ROUTES_ACCOUNTS_URI: {{ .Values.routes.accountsUri | quote }}
+  ROUTES_CASH_URI: {{ .Values.routes.cashUri | quote }}
+  ROUTES_TRANSFER_URI: {{ .Values.routes.transferUri | quote }}

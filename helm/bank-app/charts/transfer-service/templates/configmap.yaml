@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-transfer-service
+data:
+  application.yaml: |
+    server:
+      port: {{ .Values.container.port }}
+    spring:
+      application:
+        name: transfer-service
+      security:
+        oauth2:
+          resourceserver:
+            jwt:
+              issuer-uri: {{ .Values.keycloak.issuerUri }}
+          client:
+            registration:
+              transfer-service:
+                client-id: {{ .Values.oauth.clientId }}
+                authorization-grant-type: client_credentials
+                provider: keycloak
+            provider:
+              keycloak:
+                issuer-uri: {{ .Values.keycloak.issuerUri }}
+    bank:
+      accounts:
+        base-url: {{ .Values.accounts.baseUrl }}
+      notifications:
+        base-url: {{ .Values.notifications.baseUrl }}

@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-notifications-service
+data:
+  application.yaml: |
+    server:
+      port: {{ .Values.container.port }}
+    spring:
+      application:
+        name: notifications-service
+      security:
+        oauth2:
+          resourceserver:
+            jwt:
+              issuer-uri: {{ .Values.keycloak.issuerUri }}

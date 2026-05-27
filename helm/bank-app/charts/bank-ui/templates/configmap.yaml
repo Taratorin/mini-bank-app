@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-bank-ui
+data:
+  SERVER_PORT: {{ .Values.container.port | quote }}
+  KEYCLOAK_ISSUER_URI: {{ .Values.keycloak.issuerUri | quote }}
+  BANK_GATEWAY_BASE_URL: {{ .Values.gateway.baseUrl | quote }}

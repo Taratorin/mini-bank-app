@@ -1,10 +1,9 @@
 package ru.cloudwithout.accountsservice;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import ru.cloudwithout.accountsservice.support.AccountsIntegrationTest;
 
-@SpringBootTest
-class AccountsServiceApplicationTests {
+class AccountsServiceApplicationTests extends AccountsIntegrationTest {
 
     @Test
     void contextLoads() {

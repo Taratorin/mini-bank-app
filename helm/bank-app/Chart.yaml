@@ -1,0 +1,29 @@
+apiVersion: v2
+name: bank-app
+description: Umbrella Helm chart for mini-bank-app microservices
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+dependencies:
+  - name: postgres
+    version: "0.1.0"
+    condition: postgres.enabled
+  - name: bank-ui
+    version: "0.1.0"
+    condition: bank-ui.enabled
+  - name: bank-gateway
+    version: "0.1.0"
+    condition: bank-gateway.enabled
+  - name: accounts-service
+    version: "0.1.0"
+    condition: accounts-service.enabled
+  - name: cash-service
+    version: "0.1.0"
+    condition: cash-service.enabled
+  - name: transfer-service
+    version: "0.1.0"
+    condition: transfer-service.enabled
+  - name: notifications-service
+    version: "0.1.0"
+    condition: notifications-service.enabled

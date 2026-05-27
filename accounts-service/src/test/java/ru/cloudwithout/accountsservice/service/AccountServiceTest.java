@@ -7,9 +7,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.cloudwithout.accountsservice.client.NotificationsClient;
 import ru.cloudwithout.accountsservice.model.Account;
-import ru.cloudwithout.accountsservice.model.CashAction;
-import ru.cloudwithout.accountsservice.model.CommonResponse;
 import ru.cloudwithout.accountsservice.repository.AccountRepository;
+import ru.cloudwithout.commonmodels.common.dto.CashAction;
+import ru.cloudwithout.commonmodels.common.dto.CommonResponse;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -39,7 +39,7 @@ class AccountServiceTest {
         when(accountRepository.findByLogin("serg")).thenReturn(Optional.of(serg));
         when(accountRepository.findAll()).thenReturn(List.of(serg, alex));
 
-        CommonResponse response = accountService.editCash("serg", 50, CashAction.PUT);
+        CommonResponse response = accountService.editCash("serg", 50, CashAction.DEPOSIT);
 
         assertThat(response.getSum()).isEqualByComparingTo("150.00");
         assertThat(response.getErrors()).isEmpty();
@@ -55,10 +55,24 @@ class AccountServiceTest {
         when(accountRepository.findByLogin("serg")).thenReturn(Optional.of(serg));
         when(accountRepository.findAll()).thenReturn(List.of(serg, alex));
 
-        CommonResponse response = accountService.editCash("serg", 100, CashAction.GET);
+        CommonResponse response = accountService.editCash("serg", 100, CashAction.WITHDRAW);
 
         assertThat(response.getSum()).isEqualByComparingTo("40.00");
         assertThat(response.getErrors()).contains("Недостаточно средств на счёте");
+        assertThat(response.getInfo()).isNull();
+        verify(accountRepository, never()).save(any(Account.class));
+    }
+
+    @Test
+    void editCashPutShouldReturnErrorWhenSumExceedsLimit() {
+        Account serg = account("serg", new BigDecimal("99999990.00"));
+        when(accountRepository.findByLogin("serg")).thenReturn(Optional.of(serg));
+        when(accountRepository.findAll()).thenReturn(List.of(serg));
+
+        CommonResponse response = accountService.editCash("serg", 20, CashAction.DEPOSIT);
+
+        assertThat(response.getSum()).isEqualByComparingTo("99999990.00");
+        assertThat(response.getErrors()).contains("Сумма на счёте превышает допустимый лимит (99 999 999,99 руб.)");
         assertThat(response.getInfo()).isNull();
         verify(accountRepository, never()).save(any(Account.class));
     }

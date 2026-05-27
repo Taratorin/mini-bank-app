@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.cloudwithout.notificationsservice.model.NotificationRequest;
+import ru.cloudwithout.commonmodels.common.dto.NotificationRequest;
 
 @RestController
 @RequestMapping("/notifications")

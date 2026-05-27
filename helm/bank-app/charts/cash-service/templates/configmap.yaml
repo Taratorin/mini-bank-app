@@ -1,0 +1,34 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-cash-service
+data:
+  application.yaml: |
+    server:
+      port: {{ .Values.container.port }}
+    spring:
+      application:
+        name: cash-service
+      security:
+        oauth2:
+          resourceserver:
+            jwt:
+              issuer-uri: {{ .Values.keycloak.issuerUri }}
+          client:
+            registration:
+              cash-service:
+                client-id: {{ .Values.oauth.cashClientId }}
+                authorization-grant-type: client_credentials
+                provider: keycloak
+              accounts-service:
+                client-id: {{ .Values.oauth.accountsClientId }}
+                authorization-grant-type: client_credentials
+                provider: keycloak
+            provider:
+              keycloak:
+                issuer-uri: {{ .Values.keycloak.issuerUri }}
+    bank:
+      accounts:
+        base-url: {{ .Values.accounts.baseUrl }}
+      notifications:
+        base-url: {{ .Values.notifications.baseUrl }}

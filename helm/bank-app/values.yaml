@@ -1,0 +1,95 @@
+# Umbrella chart values (release name: bank-app)
+
+postgres:
+  enabled: true
+  image: postgres:18.3
+  database: bank-app
+  username: user
+  password: sa
+  storage: 10Mi
+
+bank-ui:
+  enabled: true
+  image:
+    repository: bank-ui
+    tag: latest
+    pullPolicy: Never
+  gateway:
+    baseUrl: http://bank-app-bank-gateway:8081
+  keycloak:
+    issuerUri: http://172.18.0.1:8080/realms/bank-realm
+  oauth:
+    keycloakClientSecret: ui-client-secret
+    accountsServiceClientSecret: accounts-service-secret
+    cashServiceClientSecret: cash-service-secret
+    transferServiceClientSecret: transfer-service-secret
+
+bank-gateway:
+  enabled: true
+  image:
+    repository: bank-gateway
+    tag: latest
+    pullPolicy: Never
+  keycloak:
+    issuerUri: http://172.18.0.1:8080/realms/bank-realm
+  routes:
+    accountsUri: http://bank-app-accounts-service:8083
+    cashUri: http://bank-app-cash-service:8085
+    transferUri: http://bank-app-transfer-service:8086
+
+accounts-service:
+  enabled: true
+  image:
+    repository: accounts-service
+    tag: latest
+    pullPolicy: Never
+  keycloak:
+    issuerUri: http://172.18.0.1:8080/realms/bank-realm
+  notifications:
+    baseUrl: http://bank-app-notifications-service:8087
+  postgres:
+    jdbcUrl: jdbc:postgresql://bank-app-postgres:5432/bank-app?currentSchema=accounts
+    username: user
+    password: sa
+  oauth:
+    clientSecret: accounts-service-secret
+
+cash-service:
+  enabled: true
+  image:
+    repository: cash-service
+    tag: latest
+    pullPolicy: Never
+  keycloak:
+    issuerUri: http://172.18.0.1:8080/realms/bank-realm
+  accounts:
+    baseUrl: http://bank-app-accounts-service:8083
+  notifications:
+    baseUrl: http://bank-app-notifications-service:8087
+  oauth:
+    cashClientSecret: cash-service-secret
+    accountsClientSecret: accounts-service-secret
+
+transfer-service:
+  enabled: true
+  image:
+    repository: transfer-service
+    tag: latest
+    pullPolicy: Never
+  keycloak:
+    issuerUri: http://172.18.0.1:8080/realms/bank-realm
+  accounts:
+    baseUrl: http://bank-app-accounts-service:8083
+  notifications:
+    baseUrl: http://bank-app-notifications-service:8087
+  oauth:
+    clientSecret: transfer-service-secret
+
+notifications-service:
+  enabled: true
+  image:
+    repository: notifications-service
+    tag: latest
+    pullPolicy: Never
+  keycloak:
+    issuerUri: http://172.18.0.1:8080/realms/bank-realm

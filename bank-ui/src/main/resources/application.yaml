@@ -1,22 +1,39 @@
 spring:
-  config:
-    import: "optional:consul:"
   application:
     name: bank-ui
-  cloud:
-    consul:
-      host: ${CONSUL_HOST:localhost}
-      port: ${CONSUL_PORT:8500}
-      discovery:
-        enabled: true
-        register: true
-        health-check-path: /actuator/health
-      config:
-        enabled: true
-        format: yaml
-        prefixes:
-          - config
-        default-context: application
-        fail-fast: false
-        watch:
-          enabled: false
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            client-id: bank-ui
+            client-secret: ui-client-secret
+            authorization-grant-type: authorization_code
+            scope: openid, profile
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            provider: keycloak
+          accounts-service:
+            client-id: accounts-service
+            client-secret: accounts-service-secret
+            authorization-grant-type: client_credentials
+            provider: keycloak
+          cash-service:
+            client-id: cash-service
+            client-secret: cash-service-secret
+            authorization-grant-type: client_credentials
+            provider: keycloak
+          transfer-service:
+            client-id: transfer-service
+            client-secret: transfer-service-secret
+            authorization-grant-type: client_credentials
+            provider: keycloak
+        provider:
+          keycloak:
+            issuer-uri: ${KEYCLOAK_ISSUER_URI:http://172.18.0.1:8080/realms/bank-realm}
+
+server:
+  port: ${SERVER_PORT:8084}
+
+bank:
+  gateway:
+    base-url: ${BANK_GATEWAY_BASE_URL:http://localhost:8081}
