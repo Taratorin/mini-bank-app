@@ -1,4 +1,4 @@
-package ru.cloudwithout.bankui.exception;
+package ru.cloudwithout.commonmodels.common.dto.exception;
 
 import lombok.Getter;
 

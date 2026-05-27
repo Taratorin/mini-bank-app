@@ -6,8 +6,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
-import ru.cloudwithout.bankui.exception.UiModelException;
 import ru.cloudwithout.bankui.model.MainPageModelFiller;
+import ru.cloudwithout.commonmodels.common.dto.exception.UiModelException;
 
 import java.util.List;
 
