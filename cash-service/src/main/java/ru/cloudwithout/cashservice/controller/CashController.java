@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.cloudwithout.cashservice.client.AccountsClient;
 import ru.cloudwithout.cashservice.client.NotificationsClient;
-import ru.cloudwithout.cashservice.model.CommonResponse;
-import ru.cloudwithout.cashservice.model.dto.CashAction;
+import ru.cloudwithout.commonmodels.common.dto.CashAction;
+import ru.cloudwithout.commonmodels.common.dto.CommonResponse;
 
 @RestController
 @RequestMapping("/cash")

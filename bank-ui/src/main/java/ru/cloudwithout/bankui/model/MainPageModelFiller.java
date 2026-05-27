@@ -3,6 +3,7 @@ package ru.cloudwithout.bankui.model;
 import jakarta.annotation.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.Model;
+import ru.cloudwithout.commonmodels.common.dto.CommonResponse;
 
 import java.util.List;
 

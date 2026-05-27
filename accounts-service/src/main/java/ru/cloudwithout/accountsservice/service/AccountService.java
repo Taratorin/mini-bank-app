@@ -6,15 +6,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.cloudwithout.accountsservice.client.NotificationsClient;
 import ru.cloudwithout.accountsservice.model.Account;
-import ru.cloudwithout.accountsservice.model.AccountDto;
-import ru.cloudwithout.accountsservice.model.CashAction;
-import ru.cloudwithout.accountsservice.model.CommonResponse;
 import ru.cloudwithout.accountsservice.repository.AccountRepository;
+import ru.cloudwithout.commonmodels.common.dto.AccountDto;
+import ru.cloudwithout.commonmodels.common.dto.CashAction;
+import ru.cloudwithout.commonmodels.common.dto.CommonResponse;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+
+import static java.time.temporal.ChronoUnit.YEARS;
 
 @Service
 @Slf4j
@@ -30,18 +32,24 @@ public class AccountService {
         Account account = accountRepository.findByLogin(login)
                 .orElseThrow(() -> new IllegalArgumentException("Аккаунт не найден: " + login));
 
-        return getcommonResponse(login, account, null, null);
+        return getCommonResponse(login, account, null, null);
     }
 
+    @Transactional
     public CommonResponse editAccount(String login, String name, LocalDate birthdate) {
         Account account = accountRepository.findByLogin(login)
                 .orElseThrow(() -> new IllegalArgumentException("Аккаунт не найден: " + login));
+
+        if (isBirthdayNotValid(birthdate)) {
+            throw new IllegalArgumentException("Возраст пользователя должен быть в интервале от 18 до 120 лет");
+        }
+
         account.setFirstLastName(name);
         account.setBirthDate(birthdate);
         accountRepository.save(account);
         sendNotificationSafely("edit-account", "Профиль пользователя " + login + " обновлён");
 
-        return getcommonResponse(login, account, null, null);
+        return getCommonResponse(login, account, null, null);
     }
 
     @Transactional
@@ -53,14 +61,14 @@ public class AccountService {
 
         List<String> errors = new ArrayList<>();
         String info = null;
-        if (action == CashAction.GET && sum.compareTo(BigDecimal.valueOf(value)) < 0) {
+        if (action == CashAction.WITHDRAW && sum.compareTo(BigDecimal.valueOf(value)) < 0) {
             errors.add("Недостаточно средств на счёте");
             sendNotificationSafely(
                     "cash-" + action.name().toLowerCase(),
                     "Операция отклонена для " + login + ": недостаточно средств"
             );
         } else {
-            BigDecimal newSum = action == CashAction.GET
+            BigDecimal newSum = action == CashAction.WITHDRAW
                     ? sum.subtract(BigDecimal.valueOf(value))
                     : sum.add(BigDecimal.valueOf(value));
             if (newSum.compareTo(MAX_SUM) > 0) {
@@ -72,12 +80,12 @@ public class AccountService {
             } else {
                 account.setSum(newSum);
                 accountRepository.save(account);
-                info = action == CashAction.GET ? "Снято руб.: " + value : "Положено руб.: " + value;
+                info = action == CashAction.WITHDRAW ? "Снято руб.: " + value : "Положено руб.: " + value;
                 sendNotificationSafely("cash-" + action.name().toLowerCase(), "Операция для " + login + ": " + info);
             }
         }
 
-        return getcommonResponse(login, account, errors, info);
+        return getCommonResponse(login, account, errors, info);
     }
 
     @Transactional
@@ -110,14 +118,15 @@ public class AccountService {
             }
         }
 
-        return getcommonResponse(from, accountFrom, errors, info);
+        return getCommonResponse(from, accountFrom, errors, info);
     }
 
-    private CommonResponse getcommonResponse(String login, Account account, List<String> errors, String info) {
-        List<AccountDto> others = accountRepository.findAll().stream()
-                .filter(a -> !a.getLogin().equals(login))
+    private CommonResponse getCommonResponse(String login, Account account, List<String> errors, String info) {
+        List<AccountDto> others = accountRepository.findAllByLoginNot(login).stream()
                 .map(a -> new AccountDto(a.getLogin(), a.getFirstLastName()))
                 .toList();
+
+        log.info("found other accounts: {}", others);
 
         return CommonResponse.builder()
                 .login(account.getLogin())
@@ -136,5 +145,10 @@ public class AccountService {
         } catch (Exception exception) {
             log.warn("Не удалось отправить уведомление: operation={}, message={}", operation, message, exception);
         }
+    }
+
+    private boolean isBirthdayNotValid(LocalDate birthdate) {
+        long years = YEARS.between(birthdate, LocalDate.now());
+        return years < 18 || years > 120;
     }
 }

@@ -1,0 +1,24 @@
+plugins {
+    id 'java'
+    id 'io.freefair.lombok' version '9.5.0'
+}
+
+group = 'ru.cloudwithout'
+version = '0.0.1-SNAPSHOT'
+description = 'common-models'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+}
+
+tasks.register("prepareKotlinBuildScriptModel") {
+}

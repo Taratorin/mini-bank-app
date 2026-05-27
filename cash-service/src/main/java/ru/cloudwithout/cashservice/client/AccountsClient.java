@@ -7,8 +7,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
-import ru.cloudwithout.cashservice.model.CommonResponse;
-import ru.cloudwithout.cashservice.model.dto.CashAction;
+import ru.cloudwithout.commonmodels.common.dto.CashAction;
+import ru.cloudwithout.commonmodels.common.dto.CommonResponse;
 
 import java.net.URI;
 import java.util.List;

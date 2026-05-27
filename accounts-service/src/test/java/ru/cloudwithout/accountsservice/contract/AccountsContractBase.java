@@ -9,10 +9,10 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import ru.cloudwithout.accountsservice.model.CashAction;
-import ru.cloudwithout.accountsservice.model.CommonResponse;
 import ru.cloudwithout.accountsservice.service.AccountService;
 import ru.cloudwithout.accountsservice.support.AccountsIntegrationTest;
+import ru.cloudwithout.commonmodels.common.dto.CashAction;
+import ru.cloudwithout.commonmodels.common.dto.CommonResponse;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -51,7 +51,7 @@ public abstract class AccountsContractBase extends AccountsIntegrationTest {
                         .info(null)
                         .build());
 
-        when(accountService.editCash("test", 100, CashAction.PUT))
+        when(accountService.editCash("test", 100, CashAction.DEPOSIT))
                 .thenReturn(CommonResponse.builder()
                         .login("test")
                         .firstLastName("Иван Иванович")

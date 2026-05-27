@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
-import ru.cloudwithout.cashservice.model.dto.NotificationRequest;
+import ru.cloudwithout.commonmodels.common.dto.NotificationRequest;
 
 import java.net.URI;
 
@@ -19,7 +19,7 @@ import static org.springframework.security.oauth2.client.web.ClientAttributes.cl
 @Slf4j
 public class NotificationsClient {
 
-    private final WebClient accountsWebClient;
+    private final WebClient notificationsWebClient;
 
     @Value("${bank.notifications.base-url}")
     private String notificationsBaseUrl;
@@ -33,7 +33,7 @@ public class NotificationsClient {
                 .toUri();
         NotificationRequest request = new NotificationRequest("cash-service", operation, message);
         log.info("Отправляем уведомление: operation={}, message={}, uri={}", operation, message, uri);
-        accountsWebClient
+        notificationsWebClient
                 .post()
                 .uri(uri)
                 .attributes(clientRegistrationId("cash-service"))

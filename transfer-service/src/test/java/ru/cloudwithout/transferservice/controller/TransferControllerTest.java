@@ -9,7 +9,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.cloudwithout.transferservice.client.AccountsClient;
 import ru.cloudwithout.transferservice.client.NotificationsClient;
-import ru.cloudwithout.transferservice.model.CommonResponse;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

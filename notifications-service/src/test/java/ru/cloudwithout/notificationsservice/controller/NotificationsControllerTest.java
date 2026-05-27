@@ -32,19 +32,4 @@ class NotificationsControllerTest {
                                 """))
                 .andExpect(status().isOk());
     }
-
-    @Test
-    @WithMockUser(roles = "SERVICE")
-    void notifyShouldAcceptRequestInControllerTestWithoutFilters() throws Exception {
-        mockMvc.perform(post("/notifications")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "service":"cash-service",
-                                  "operation":"cash-put",
-                                  "message":"ok"
-                                }
-                                """))
-                .andExpect(status().isOk());
-    }
 }

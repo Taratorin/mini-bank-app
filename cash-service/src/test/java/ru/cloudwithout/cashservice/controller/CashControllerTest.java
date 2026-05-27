@@ -9,8 +9,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.cloudwithout.cashservice.client.AccountsClient;
 import ru.cloudwithout.cashservice.client.NotificationsClient;
-import ru.cloudwithout.cashservice.model.CommonResponse;
-import ru.cloudwithout.cashservice.model.dto.CashAction;
+import ru.cloudwithout.commonmodels.common.dto.CashAction;
+import ru.cloudwithout.commonmodels.common.dto.CommonResponse;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -39,7 +39,7 @@ class CashControllerTest {
     @WithMockUser(roles = "SERVICE")
     void editCashShouldReturnServiceResponse() throws Exception {
         CommonResponse response = response("test", "350.00");
-        when(accountsClient.editCash("test", 250, CashAction.PUT)).thenReturn(response);
+        when(accountsClient.editCash("test", 250, CashAction.DEPOSIT)).thenReturn(response);
 
         mockMvc.perform(post("/cash")
                         .param("login", "test")
@@ -48,7 +48,7 @@ class CashControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.sum").value(350.00));
 
-        verify(accountsClient).editCash("test", 250, CashAction.PUT);
+        verify(accountsClient).editCash("test", 250, CashAction.DEPOSIT);
         verify(notificationsClient).send("cash-put", "Обработан запрос cash-service для test, value=250");
     }
 

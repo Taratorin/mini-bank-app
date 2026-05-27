@@ -30,6 +30,8 @@ repositories {
 }
 
 dependencies {
+    implementation project(':common-models')
+
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation 'org.springframework:spring-aop'
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'

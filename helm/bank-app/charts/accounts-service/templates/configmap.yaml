@@ -16,7 +16,7 @@ data:
         defer-datasource-initialization: true
       sql:
         init:
-          mode: always
+          mode: never
           schema-locations: classpath:schema.sql
           data-locations: classpath:data.sql
       security:

@@ -14,14 +14,11 @@ import ru.cloudwithout.bankui.client.AccountsClient;
 import ru.cloudwithout.bankui.client.CashClient;
 import ru.cloudwithout.bankui.client.TransferClient;
 import ru.cloudwithout.bankui.exception.UiModelException;
-import ru.cloudwithout.bankui.model.CommonResponse;
 import ru.cloudwithout.bankui.model.MainPageModelFiller;
-import ru.cloudwithout.bankui.model.dto.CashAction;
+import ru.cloudwithout.commonmodels.common.dto.CashAction;
+import ru.cloudwithout.commonmodels.common.dto.CommonResponse;
 
 import java.time.LocalDate;
-import java.util.List;
-
-import static java.time.temporal.ChronoUnit.YEARS;
 
 @Controller
 @RequiredArgsConstructor
@@ -66,18 +63,11 @@ public class MainController {
         if (login == null) {
             throw new UiModelException("Login отсутствует в аутентифицированном запросе");
         } else {
-            if (isBirthdayNotValid(birthdate)) {
-                throw new UiModelException(
-                        List.of("birthday is not valid"),
-                        "user's age must be between 18 and 120 years old"
-                );
+            CommonResponse resp = accountsClient.editAccount(login, name, birthdate);
+            if (resp == null) {
+                throw new UiModelException("accounts-service вернул пустой ответ");
             } else {
-                CommonResponse resp = accountsClient.editAccount(login, name, birthdate);
-                if (resp == null) {
-                    throw new UiModelException("accounts-service вернул пустой ответ");
-                } else {
-                    mainPageModelFiller.fillModel(model, resp, null, null);
-                }
+                mainPageModelFiller.fillModel(model, resp, null, null);
             }
         }
         log.info("Данные профиля обновлены для пользователя {}", login);
@@ -129,11 +119,6 @@ public class MainController {
         }
         log.info("Перевод обработан: from={}, to={}, сумма={}", from, login, value);
         return "main";
-    }
-
-    private boolean isBirthdayNotValid(LocalDate birthdate) {
-        long years = YEARS.between(birthdate, LocalDate.now());
-        return years < 18 || years > 120;
     }
 
     private void fillModelFromResponse(Model model, CommonResponse resp) {

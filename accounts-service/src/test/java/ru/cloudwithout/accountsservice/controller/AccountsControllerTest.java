@@ -6,10 +6,10 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import ru.cloudwithout.accountsservice.model.CashAction;
-import ru.cloudwithout.accountsservice.model.CommonResponse;
 import ru.cloudwithout.accountsservice.service.AccountService;
 import ru.cloudwithout.accountsservice.support.AccountsIntegrationTest;
+import ru.cloudwithout.commonmodels.common.dto.CashAction;
+import ru.cloudwithout.commonmodels.common.dto.CommonResponse;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -46,7 +46,7 @@ class AccountsControllerTest extends AccountsIntegrationTest {
     @Test
     @WithMockUser(roles = "SERVICE")
     void editCashShouldCallService() throws Exception {
-        when(accountService.editCash("test", 200, CashAction.PUT)).thenReturn(response("test", "Иван Иванович", "300.00"));
+        when(accountService.editCash("test", 200, CashAction.DEPOSIT)).thenReturn(response("test", "Иван Иванович", "300.00"));
 
         mockMvc.perform(post("/accounts/cash")
                         .param("login", "test")
@@ -55,7 +55,7 @@ class AccountsControllerTest extends AccountsIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.sum").value(300.00));
 
-        verify(accountService).editCash("test", 200, CashAction.PUT);
+        verify(accountService).editCash("test", 200, CashAction.DEPOSIT);
     }
 
     @Test

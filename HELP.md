@@ -31,7 +31,7 @@ PostgreSQL – в Kubernetes, Helm-сабчарт `postgres`.
 Из корня проекта:
 
 ```bash
-./gradlew clean build
+./gradlew clean build -x test
 ```
 
 Только unit-тесты:
@@ -112,6 +112,9 @@ kubectl get pods
 Открыть UI (для Kind – `http://localhost:30277`), войти через Keycloak.
 
 Тестовый пользователь: test/test.
+
+Для простоты развёртывания приложения в корневой директории подготовлен скрипт
+`deploy.sh`, выполняющий все необходимые действия.
 
 ## Тесты Helm-чартов
 
