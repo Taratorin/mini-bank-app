@@ -1,6 +1,7 @@
 package ru.cloudwithout.transferservice.client;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +26,7 @@ public class AccountsClient {
     @Value("${bank.accounts.base-url}")
     private String accountsBaseUrl;
 
+    @Retry(name = "accountsClient", fallbackMethod = "transferFallback")
     @CircuitBreaker(name = "accountsClient", fallbackMethod = "transferFallback")
     public CommonResponse transfer(String from, int value, String to) {
         URI uri = UriComponentsBuilder.fromUriString(accountsBaseUrl)
