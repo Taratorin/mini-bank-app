@@ -7,15 +7,15 @@ spring:
         webflux:
           routes:
             - id: accounts-service
-              uri: ${ROUTES_ACCOUNTS_URI:http://localhost:8083}
+              uri: ${ROUTES_ACCOUNTS_URI}
               predicates:
                 - Path=/accounts/**
             - id: cash-service
-              uri: ${ROUTES_CASH_URI:http://localhost:8085}
+              uri: ${ROUTES_CASH_URI}
               predicates:
                 - Path=/cash/**
             - id: transfer-service
-              uri: ${ROUTES_TRANSFER_URI:http://localhost:8086}
+              uri: ${ROUTES_TRANSFER_URI}
               predicates:
                 - Path=/transfer/**
   security:

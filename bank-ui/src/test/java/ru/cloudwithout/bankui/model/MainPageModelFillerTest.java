@@ -2,6 +2,8 @@ package ru.cloudwithout.bankui.model;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.ui.ConcurrentModel;
+import ru.cloudwithout.commonmodels.common.dto.AccountDto;
+import ru.cloudwithout.commonmodels.common.dto.CommonResponse;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
