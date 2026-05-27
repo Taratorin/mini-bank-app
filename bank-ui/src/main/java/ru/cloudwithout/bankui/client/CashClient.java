@@ -11,6 +11,7 @@ import ru.cloudwithout.commonmodels.common.dto.CashAction;
 import ru.cloudwithout.commonmodels.common.dto.CommonResponse;
 
 import java.net.URI;
+import java.time.Duration;
 import java.util.List;
 
 import static org.springframework.security.oauth2.client.web.ClientAttributes.clientRegistrationId;
@@ -42,7 +43,7 @@ public class CashClient {
                 .attributes(clientRegistrationId("cash-service"))
                 .retrieve()
                 .bodyToMono(CommonResponse.class)
-                .block();
+                .block(Duration.ofSeconds(5));
         log.info("Получили ответ по операции со счетом пользователя {}", login);
         return response;
     }
