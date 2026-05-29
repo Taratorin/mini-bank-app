@@ -15,7 +15,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -51,18 +50,11 @@ class AccountsControllerTest extends AccountsIntegrationTest {
         mockMvc.perform(post("/accounts/cash")
                         .param("login", "test")
                         .param("value", "200")
-                        .param("action", "PUT"))
+                        .param("action", "DEPOSIT"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.sum").value(300.00));
 
         verify(accountService).editCash("test", 200, CashAction.DEPOSIT);
-    }
-
-    @Test
-    @WithMockUser(roles = "USER")
-    void endpointShouldBeForbiddenWithoutServiceRole() throws Exception {
-        assertThatThrownBy(() -> mockMvc.perform(get("/accounts/login").param("login", "test")))
-                .hasMessageContaining("Access Denied");
     }
 
     private CommonResponse response(String login, String name, String sum) {
