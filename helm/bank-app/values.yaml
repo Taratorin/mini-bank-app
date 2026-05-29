@@ -100,3 +100,8 @@ notifications-service:
     bootstrapServers: bank-app-kafka-headless.default.svc.cluster.local:9092
     topic: notifications
     consumerGroup: notifications-service
+
+kafka:
+  enabled: true
+  image: apache/kafka:3.7.1
+  storage: 10Mi
