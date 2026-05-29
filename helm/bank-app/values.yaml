@@ -65,8 +65,9 @@ cash-service:
     issuerUri: http://172.18.0.1:8080/realms/bank-realm
   accounts:
     baseUrl: http://bank-app-accounts-service:8083
-  notifications:
-    baseUrl: http://bank-app-notifications-service:8087
+  kafka:
+    bootstrapServers: bank-app-kafka-headless.default.svc.cluster.local:9092
+    topic: notifications
   oauth:
     cashClientSecret: cash-service-secret
     accountsClientSecret: accounts-service-secret
