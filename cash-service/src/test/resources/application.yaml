@@ -1,0 +1,27 @@
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+bank:
+  accounts:
+    base-url: http://localhost:8083
+  kafka:
+    topic: notifications
+
+resilience4j:
+  retry:
+    instances:
+      accountsClient:
+        maxAttempts: 1
+  circuitbreaker:
+    instances:
+      accountsClient:
+        slidingWindowSize: 1
+        minimumNumberOfCalls: 1
+        failureRateThreshold: 100

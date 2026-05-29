@@ -1,14 +1,16 @@
 package ru.cloudwithout.cashservice.controller;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.cloudwithout.cashservice.client.AccountsClient;
-import ru.cloudwithout.cashservice.client.NotificationsClient;
+import ru.cloudwithout.cashservice.kafka.NotificationKafkaProducer;
+import ru.cloudwithout.cashservice.support.SecurityTestSupport;
 import ru.cloudwithout.commonmodels.common.dto.CashAction;
 import ru.cloudwithout.commonmodels.common.dto.CommonResponse;
 
@@ -21,9 +23,10 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static ru.cloudwithout.cashservice.support.SecurityTestSupport.bearerToken;
 
 @SpringBootTest
-@AutoConfigureMockMvc(addFilters = false)
+@AutoConfigureMockMvc
 class CashControllerTest {
 
     @Autowired
@@ -33,23 +36,52 @@ class CashControllerTest {
     private AccountsClient accountsClient;
 
     @MockitoBean
-    private NotificationsClient notificationsClient;
+    private NotificationKafkaProducer notificationKafkaProducer;
+
+    @MockitoBean
+    private JwtDecoder jwtDecoder;
+
+    @BeforeEach
+    void setUpServiceRole() {
+        SecurityTestSupport.stubJwtDecoder(jwtDecoder, "SERVICE");
+    }
 
     @Test
-    @WithMockUser(roles = "SERVICE")
     void editCashShouldReturnServiceResponse() throws Exception {
         CommonResponse response = response("test", "350.00");
         when(accountsClient.editCash("test", 250, CashAction.DEPOSIT)).thenReturn(response);
 
         mockMvc.perform(post("/cash")
+                        .with(bearerToken())
                         .param("login", "test")
                         .param("value", "250")
-                        .param("action", "PUT"))
+                        .param("action", "DEPOSIT"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.sum").value(350.00));
 
         verify(accountsClient).editCash("test", 250, CashAction.DEPOSIT);
-        verify(notificationsClient).send("cash-put", "Обработан запрос cash-service для test, value=250");
+        verify(notificationKafkaProducer).send("cash-deposit", "Обработан запрос cash-service для test, value=250");
+    }
+
+    @Test
+    void editCashShouldBeForbiddenWithoutServiceRole() throws Exception {
+        SecurityTestSupport.stubJwtDecoder(jwtDecoder, "USER");
+
+        mockMvc.perform(post("/cash")
+                        .with(bearerToken())
+                        .param("login", "test")
+                        .param("value", "250")
+                        .param("action", "DEPOSIT"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void editCashShouldBeUnauthorizedWithoutToken() throws Exception {
+        mockMvc.perform(post("/cash")
+                        .param("login", "test")
+                        .param("value", "250")
+                        .param("action", "DEPOSIT"))
+                .andExpect(status().isUnauthorized());
     }
 
     private CommonResponse response(String login, String sum) {
