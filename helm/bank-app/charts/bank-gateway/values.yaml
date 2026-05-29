@@ -15,6 +15,11 @@ container:
 keycloak:
   issuerUri: http://172.18.0.1:8080/realms/bank-realm
 
+oauth:
+  accountsServiceClientSecret: accounts-service-secret
+  cashServiceClientSecret: cash-service-secret
+  transferServiceClientSecret: transfer-service-secret
+
 routes:
   accountsUri: http://bank-app-accounts-service:8083
   cashUri: http://bank-app-cash-service:8085

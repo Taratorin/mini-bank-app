@@ -10,16 +10,45 @@ spring:
               uri: ${ROUTES_ACCOUNTS_URI}
               predicates:
                 - Path=/accounts/**
+              filters:
+                - TokenRelay=accounts-service
             - id: cash-service
               uri: ${ROUTES_CASH_URI}
               predicates:
                 - Path=/cash/**
+              filters:
+                - TokenRelay=cash-service
             - id: transfer-service
               uri: ${ROUTES_TRANSFER_URI}
               predicates:
                 - Path=/transfer/**
+              filters:
+                - TokenRelay=transfer-service
   security:
     oauth2:
+      client:
+        provider:
+          keycloak:
+            issuer-uri: ${KEYCLOAK_ISSUER_URI:http://172.18.0.1:8080/realms/bank-realm}
+        registration:
+          accounts-service:
+            provider: keycloak
+            client-id: accounts-service
+            client-secret: ${ACCOUNTS_SERVICE_CLIENT_SECRET:accounts-service-secret}
+            authorization-grant-type: client_credentials
+            scope: openid
+          cash-service:
+            provider: keycloak
+            client-id: cash-service
+            client-secret: ${CASH_SERVICE_CLIENT_SECRET:cash-service-secret}
+            authorization-grant-type: client_credentials
+            scope: openid
+          transfer-service:
+            provider: keycloak
+            client-id: transfer-service
+            client-secret: ${TRANSFER_SERVICE_CLIENT_SECRET:transfer-service-secret}
+            authorization-grant-type: client_credentials
+            scope: openid
       resourceserver:
         jwt:
           issuer-uri: ${KEYCLOAK_ISSUER_URI:http://172.18.0.1:8080/realms/bank-realm}

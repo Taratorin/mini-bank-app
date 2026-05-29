@@ -21,3 +21,5 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ .Release.Name }}-bank-gateway
+            - secretRef:
+                name: {{ .Release.Name }}-bank-gateway
