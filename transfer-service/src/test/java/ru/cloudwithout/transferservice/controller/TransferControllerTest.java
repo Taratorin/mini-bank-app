@@ -1,15 +1,17 @@
 package ru.cloudwithout.transferservice.controller;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.cloudwithout.commonmodels.common.dto.CommonResponse;
 import ru.cloudwithout.transferservice.client.AccountsClient;
-import ru.cloudwithout.transferservice.client.NotificationsClient;
+import ru.cloudwithout.transferservice.kafka.NotificationKafkaProducer;
+import ru.cloudwithout.transferservice.support.SecurityTestSupport;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -20,9 +22,10 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static ru.cloudwithout.transferservice.support.SecurityTestSupport.bearerToken;
 
 @SpringBootTest
-@AutoConfigureMockMvc(addFilters = false)
+@AutoConfigureMockMvc
 class TransferControllerTest {
 
     @Autowired
@@ -32,21 +35,50 @@ class TransferControllerTest {
     private AccountsClient accountsClient;
 
     @MockitoBean
-    private NotificationsClient notificationsClient;
+    private NotificationKafkaProducer notificationKafkaProducer;
+
+    @MockitoBean
+    private JwtDecoder jwtDecoder;
+
+    @BeforeEach
+    void setUpServiceRole() {
+        SecurityTestSupport.stubJwtDecoder(jwtDecoder, "SERVICE");
+    }
 
     @Test
-    @WithMockUser(roles = "SERVICE")
     void transferShouldReturnAccountsServiceResponse() throws Exception {
         when(accountsClient.transfer("test", 100, "alex")).thenReturn(response("test", "900.00"));
 
         mockMvc.perform(post("/transfer")
+                        .with(bearerToken())
                         .param("from", "test")
                         .param("to", "alex")
                         .param("value", "100"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.sum").value(900.00));
 
-        verify(notificationsClient).send("transfer", "Обработан запрос transfer-service: from=test, to=alex, value=100");
+        verify(notificationKafkaProducer).send("transfer", "Обработан запрос transfer-service: from=test, to=alex, value=100");
+    }
+
+    @Test
+    void transferShouldBeForbiddenWithoutServiceRole() throws Exception {
+        SecurityTestSupport.stubJwtDecoder(jwtDecoder, "USER");
+
+        mockMvc.perform(post("/transfer")
+                        .with(bearerToken())
+                        .param("from", "test")
+                        .param("to", "alex")
+                        .param("value", "100"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void transferShouldBeUnauthorizedWithoutToken() throws Exception {
+        mockMvc.perform(post("/transfer")
+                        .param("from", "test")
+                        .param("to", "alex")
+                        .param("value", "100"))
+                .andExpect(status().isUnauthorized());
     }
 
     private CommonResponse response(String login, String sum) {
