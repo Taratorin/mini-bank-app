@@ -5,6 +5,7 @@ templates:
   - statefulset.yaml
   - service.yaml
   - secret.yaml
+  - configmap-init.yaml
 tests:
   - it: renders postgres StatefulSet
     template: statefulset.yaml
@@ -24,6 +25,31 @@ tests:
       - equal:
           path: spec.volumeClaimTemplates[0].spec.resources.requests.storage
           value: 10Mi
+
+  - it: mounts db init scripts for first-time postgres bootstrap
+    template: statefulset.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: init-scripts
+            mountPath: /docker-entrypoint-initdb.d
+            readOnly: true
+      - equal:
+          path: spec.template.spec.volumes[0].configMap.name
+          value: bank-app-postgres-init
+
+  - it: renders init configmap with schema and seed data
+    template: configmap-init.yaml
+    asserts:
+      - isKind:
+          of: ConfigMap
+      - matchRegex:
+          path: data["01-schema.sql"]
+          pattern: CREATE SCHEMA IF NOT EXISTS accounts
+      - matchRegex:
+          path: data["02-data.sql"]
+          pattern: INSERT INTO accounts.accounts
 
   - it: exposes postgres port
     template: service.yaml

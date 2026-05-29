@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-postgres-init
+data:
+  01-schema.sql: |
+{{ .Files.Get "files/init/01-schema.sql" | indent 4 }}
+  02-data.sql: |
+{{ .Files.Get "files/init/02-data.sql" | indent 4 }}
