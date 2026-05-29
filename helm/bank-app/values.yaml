@@ -45,8 +45,9 @@ accounts-service:
     pullPolicy: Never
   keycloak:
     issuerUri: http://172.18.0.1:8080/realms/bank-realm
-  notifications:
-    baseUrl: http://bank-app-notifications-service:8087
+  kafka:
+    bootstrapServers: bank-app-kafka-headless.default.svc.cluster.local:9092
+    topic: notifications
   postgres:
     jdbcUrl: jdbc:postgresql://bank-app-postgres:5432/bank-app?currentSchema=accounts
     username: user
