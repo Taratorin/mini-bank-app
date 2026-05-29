@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.cloudwithout.commonmodels.common.dto.CommonResponse;
 import ru.cloudwithout.transferservice.client.AccountsClient;
-import ru.cloudwithout.transferservice.client.NotificationsClient;
+import ru.cloudwithout.transferservice.kafka.NotificationKafkaProducer;
 
 @RestController
 @RequestMapping("/transfer")
@@ -18,7 +18,7 @@ import ru.cloudwithout.transferservice.client.NotificationsClient;
 public class TransferController {
 
     private final AccountsClient accountsClient;
-    private final NotificationsClient notificationsClient;
+    private final NotificationKafkaProducer notificationKafkaProducer;
 
     @PostMapping()
     @PreAuthorize("hasRole('SERVICE')")
@@ -27,7 +27,7 @@ public class TransferController {
         log.info("Получен запрос transfer-service: from={}, to={}, value={}", from, to, value);
         CommonResponse response = accountsClient.transfer(from, value, to);
         try {
-            notificationsClient.send(
+            notificationKafkaProducer.send(
                     "transfer",
                     "Обработан запрос transfer-service: from=" + from + ", to=" + to + ", value=" + value
             );
