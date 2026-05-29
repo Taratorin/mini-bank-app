@@ -9,11 +9,15 @@
 – `accounts-service` – аккаунты и баланс (PostgreSQL)  
 – `cash-service` – пополнение и снятие денежных средств  
 – `transfer-service` – переводы денежных средств между пользователями  
-– `notifications-service` – уведомления (направляются в лог сервиса)  
+– `notifications-service` – потребитель Kafka, уведомления пишутся в лог  
 
 Keycloak для аутентификации и авторизации – 
 в `auxiliary/docker-compose.yml` (снаружи кластера).  
-PostgreSQL – в Kubernetes, Helm-сабчарт `postgres`.
+PostgreSQL и Kafka – в Kubernetes, Helm-сабчарты `postgres` и `kafka`.  
+Схема и тестовые данные БД создаются при первом запуске Postgres
+(скрипты в сабчарте `postgres`, каталог `/docker-entrypoint-initdb.d/`).  
+Уведомления: `accounts-service`, `cash-service`, `transfer-service` 
+публикуют в топик `notifications`, `notifications-service` читает из Kafka.
 
 ## Требования
 
@@ -131,8 +135,9 @@ helm unittest ./helm/bank-app
 helm test bank-app
 ```
 
-Для `accounts-service` нужен PostgreSQL. БД поднимается в Kubernetes 
-или отдельным контейнером/`port-forward` на сервис `bank-app-postgres`.
+PostgreSQL и Kafka поднимаются чартом (`bank-app-postgres`, `bank-app-kafka`).  
+Инициализация БД — в Postgres-чарте;
+`accounts-service` не выполняет `spring.sql.init` при старте.
 
 Запуск сервисов – каждый в отдельном терминале:
 
@@ -150,7 +155,7 @@ helm test bank-app
 ## Helm-чарты
 
 Зонтичный чарт: `helm/bank-app/`.  
-Сабчарты: `postgres`, `bank-ui`, `bank-gateway`, `accounts-service`, `cash-service`, `transfer-service`, `notifications-service`.
+Сабчарты: `postgres`, `kafka`, `bank-ui`, `bank-gateway`, `accounts-service`, `cash-service`, `transfer-service`, `notifications-service`.
 
 Настройки – в `helm/bank-app/values.yaml` (образы, URL Keycloak, JDBC, маршруты Gateway).
 
