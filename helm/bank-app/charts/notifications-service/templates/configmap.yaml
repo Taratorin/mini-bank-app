@@ -9,8 +9,27 @@ data:
     spring:
       application:
         name: notifications-service
-      security:
-        oauth2:
-          resourceserver:
-            jwt:
-              issuer-uri: {{ .Values.keycloak.issuerUri }}
+      main:
+        web-application-type: none
+      kafka:
+        bootstrap-servers: {{ .Values.kafka.bootstrapServers }}
+        consumer:
+          group-id: {{ .Values.kafka.consumerGroup }}
+          auto-offset-reset: earliest
+          key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+          value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+          properties:
+            spring:
+              json:
+                trusted:
+                  packages: ru.cloudwithout.commonmodels.common.dto
+                value:
+                  default:
+                    type: ru.cloudwithout.commonmodels.common.dto.NotificationRequest
+                use:
+                  type:
+                    headers: false
+    bank:
+      kafka:
+        topic: {{ .Values.kafka.topic }}
+        consumer-group: {{ .Values.kafka.consumerGroup }}
