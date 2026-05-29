@@ -1,0 +1,14 @@
+spring:
+  security:
+    oauth2:
+      client:
+        provider:
+          keycloak:
+            authorization-uri: http://localhost:8080/realms/test/protocol/openid-connect/auth
+            token-uri: http://localhost:8080/realms/test/protocol/openid-connect/token
+            user-info-uri: http://localhost:8080/realms/test/protocol/openid-connect/userinfo
+            jwk-set-uri: http://localhost:8080/realms/test/protocol/openid-connect/certs
+
+bank:
+  gateway:
+    base-url: http://localhost:8081
