@@ -1,0 +1,27 @@
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: notifications-service-test
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring:
+          json:
+            trusted:
+              packages: ru.cloudwithout.commonmodels.common.dto
+            value:
+              default:
+                type: ru.cloudwithout.commonmodels.common.dto.NotificationRequest
+            use:
+              type:
+                headers: false
+
+bank:
+  kafka:
+    topic: notifications
+    consumer-group: notifications-service-test
