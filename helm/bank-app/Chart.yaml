@@ -27,3 +27,6 @@ dependencies:
   - name: notifications-service
     version: "0.1.0"
     condition: notifications-service.enabled
+  - name: kafka
+    version: "0.1.0"
+    condition: kafka.enabled

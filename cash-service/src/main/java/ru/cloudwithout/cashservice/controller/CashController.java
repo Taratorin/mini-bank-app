@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.cloudwithout.cashservice.client.AccountsClient;
-import ru.cloudwithout.cashservice.client.NotificationsClient;
+import ru.cloudwithout.cashservice.kafka.NotificationKafkaProducer;
 import ru.cloudwithout.commonmodels.common.dto.CashAction;
 import ru.cloudwithout.commonmodels.common.dto.CommonResponse;
 
@@ -19,16 +19,16 @@ import ru.cloudwithout.commonmodels.common.dto.CommonResponse;
 public class CashController {
 
     private final AccountsClient accountsClient;
-    private final NotificationsClient notificationsClient;
+    private final NotificationKafkaProducer notificationKafkaProducer;
 
     @PostMapping()
     @PreAuthorize("hasRole('SERVICE')")
     public CommonResponse editCash(@RequestParam String login,
-                                      @RequestParam int value, @RequestParam CashAction action) {
+                                   @RequestParam int value, @RequestParam CashAction action) {
         log.info("Получен запрос на операцию со счетом: login={}, сумма={}, действие={}", login, value, action);
         CommonResponse response = accountsClient.editCash(login, value, action);
         try {
-            notificationsClient.send(
+            notificationKafkaProducer.send(
                     "cash-" + action.name().toLowerCase(),
                     "Обработан запрос cash-service для " + login + ", value=" + value
             );

@@ -11,6 +11,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import ru.cloudwithout.commonmodels.common.dto.CommonResponse;
 
 import java.net.URI;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -41,7 +42,7 @@ public class AccountsClient {
                 .attributes(clientRegistrationId("accounts-service"))
                 .retrieve()
                 .bodyToMono(CommonResponse.class)
-                .block();
+                .block(Duration.ofSeconds(5));
         log.info("Получили ответ по аккаунту пользователя {}", login);
         return response;
     }
@@ -56,7 +57,7 @@ public class AccountsClient {
                 .attributes(clientRegistrationId("accounts-service"))
                 .retrieve()
                 .bodyToMono(CommonResponse.class)
-                .block();
+                .block(Duration.ofSeconds(5));
         log.info("Получили ответ после изменения профиля пользователя {}", login);
         return response;
     }

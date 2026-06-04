@@ -5,7 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.cloudwithout.accountsservice.client.NotificationsClient;
+import ru.cloudwithout.accountsservice.kafka.NotificationKafkaProducer;
 import ru.cloudwithout.accountsservice.model.Account;
 import ru.cloudwithout.accountsservice.repository.AccountRepository;
 import ru.cloudwithout.commonmodels.common.dto.CashAction;
@@ -19,6 +19,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -27,7 +28,7 @@ class AccountServiceTest {
     @Mock
     private AccountRepository accountRepository;
     @Mock
-    private NotificationsClient notificationsClient;
+    private NotificationKafkaProducer notificationKafkaProducer;
 
     @InjectMocks
     private AccountService accountService;
@@ -37,7 +38,7 @@ class AccountServiceTest {
         Account serg = account("serg", new BigDecimal("100.00"));
         Account alex = account("alex", new BigDecimal("500.00"));
         when(accountRepository.findByLogin("serg")).thenReturn(Optional.of(serg));
-        when(accountRepository.findAll()).thenReturn(List.of(serg, alex));
+        when(accountRepository.findAllByLoginNot("serg")).thenReturn(List.of(alex));
 
         CommonResponse response = accountService.editCash("serg", 50, CashAction.DEPOSIT);
 
@@ -45,7 +46,7 @@ class AccountServiceTest {
         assertThat(response.getErrors()).isEmpty();
         assertThat(response.getInfo()).contains("Положено руб.: 50");
         verify(accountRepository).save(serg);
-        verify(notificationsClient).send(any(), any());
+        verify(notificationKafkaProducer).send(eq("cash-deposit"), any());
     }
 
     @Test
@@ -53,7 +54,7 @@ class AccountServiceTest {
         Account serg = account("serg", new BigDecimal("40.00"));
         Account alex = account("alex", new BigDecimal("500.00"));
         when(accountRepository.findByLogin("serg")).thenReturn(Optional.of(serg));
-        when(accountRepository.findAll()).thenReturn(List.of(serg, alex));
+        when(accountRepository.findAllByLoginNot("serg")).thenReturn(List.of(alex));
 
         CommonResponse response = accountService.editCash("serg", 100, CashAction.WITHDRAW);
 
@@ -67,7 +68,7 @@ class AccountServiceTest {
     void editCashPutShouldReturnErrorWhenSumExceedsLimit() {
         Account serg = account("serg", new BigDecimal("99999990.00"));
         when(accountRepository.findByLogin("serg")).thenReturn(Optional.of(serg));
-        when(accountRepository.findAll()).thenReturn(List.of(serg));
+        when(accountRepository.findAllByLoginNot("serg")).thenReturn(List.of());
 
         CommonResponse response = accountService.editCash("serg", 20, CashAction.DEPOSIT);
 
@@ -83,7 +84,7 @@ class AccountServiceTest {
         Account to = account("alex", new BigDecimal("100.00"));
         when(accountRepository.findByLogin("serg")).thenReturn(Optional.of(from));
         when(accountRepository.findByLogin("alex")).thenReturn(Optional.of(to));
-        when(accountRepository.findAll()).thenReturn(List.of(from, to));
+        when(accountRepository.findAllByLoginNot("serg")).thenReturn(List.of(to));
 
         CommonResponse response = accountService.transfer("serg", 120, "alex");
 

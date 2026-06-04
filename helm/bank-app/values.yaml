@@ -32,6 +32,10 @@ bank-gateway:
     pullPolicy: Never
   keycloak:
     issuerUri: http://172.18.0.1:8080/realms/bank-realm
+  oauth:
+    accountsServiceClientSecret: accounts-service-secret
+    cashServiceClientSecret: cash-service-secret
+    transferServiceClientSecret: transfer-service-secret
   routes:
     accountsUri: http://bank-app-accounts-service:8083
     cashUri: http://bank-app-cash-service:8085
@@ -45,8 +49,9 @@ accounts-service:
     pullPolicy: Never
   keycloak:
     issuerUri: http://172.18.0.1:8080/realms/bank-realm
-  notifications:
-    baseUrl: http://bank-app-notifications-service:8087
+  kafka:
+    bootstrapServers: bank-app-kafka-headless.default.svc.cluster.local:9092
+    topic: notifications
   postgres:
     jdbcUrl: jdbc:postgresql://bank-app-postgres:5432/bank-app?currentSchema=accounts
     username: user
@@ -64,8 +69,9 @@ cash-service:
     issuerUri: http://172.18.0.1:8080/realms/bank-realm
   accounts:
     baseUrl: http://bank-app-accounts-service:8083
-  notifications:
-    baseUrl: http://bank-app-notifications-service:8087
+  kafka:
+    bootstrapServers: bank-app-kafka-headless.default.svc.cluster.local:9092
+    topic: notifications
   oauth:
     cashClientSecret: cash-service-secret
     accountsClientSecret: accounts-service-secret
@@ -80,8 +86,9 @@ transfer-service:
     issuerUri: http://172.18.0.1:8080/realms/bank-realm
   accounts:
     baseUrl: http://bank-app-accounts-service:8083
-  notifications:
-    baseUrl: http://bank-app-notifications-service:8087
+  kafka:
+    bootstrapServers: bank-app-kafka-headless.default.svc.cluster.local:9092
+    topic: notifications
   oauth:
     clientSecret: transfer-service-secret
 
@@ -93,3 +100,12 @@ notifications-service:
     pullPolicy: Never
   keycloak:
     issuerUri: http://172.18.0.1:8080/realms/bank-realm
+  kafka:
+    bootstrapServers: bank-app-kafka-headless.default.svc.cluster.local:9092
+    topic: notifications
+    consumerGroup: notifications-service
+
+kafka:
+  enabled: true
+  image: apache/kafka:3.7.1
+  storage: 10Mi

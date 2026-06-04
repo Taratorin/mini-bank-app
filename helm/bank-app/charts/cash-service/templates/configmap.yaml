@@ -27,8 +27,13 @@ data:
             provider:
               keycloak:
                 issuer-uri: {{ .Values.keycloak.issuerUri }}
+      kafka:
+        bootstrap-servers: bank-app-kafka-headless.default.svc.cluster.local:9092
+        producer:
+          key-serializer: org.apache.kafka.common.serialization.StringSerializer
+          value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
     bank:
       accounts:
         base-url: {{ .Values.accounts.baseUrl }}
-      notifications:
-        base-url: {{ .Values.notifications.baseUrl }}
+      kafka:
+        topic: notifications

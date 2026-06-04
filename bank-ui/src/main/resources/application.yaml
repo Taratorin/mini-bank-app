@@ -36,4 +36,4 @@ server:
 
 bank:
   gateway:
-    base-url: ${BANK_GATEWAY_BASE_URL:http://localhost:8081}
+    base-url: ${BANK_GATEWAY_BASE_URL}

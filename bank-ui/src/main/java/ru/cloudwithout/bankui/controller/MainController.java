@@ -13,10 +13,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import ru.cloudwithout.bankui.client.AccountsClient;
 import ru.cloudwithout.bankui.client.CashClient;
 import ru.cloudwithout.bankui.client.TransferClient;
-import ru.cloudwithout.bankui.exception.UiModelException;
 import ru.cloudwithout.bankui.model.MainPageModelFiller;
 import ru.cloudwithout.commonmodels.common.dto.CashAction;
 import ru.cloudwithout.commonmodels.common.dto.CommonResponse;
+import ru.cloudwithout.commonmodels.common.dto.exception.UiModelException;
 
 import java.time.LocalDate;
 

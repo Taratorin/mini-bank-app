@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.cloudwithout.accountsservice.client.NotificationsClient;
+import ru.cloudwithout.accountsservice.kafka.NotificationKafkaProducer;
 import ru.cloudwithout.accountsservice.model.Account;
 import ru.cloudwithout.accountsservice.repository.AccountRepository;
 import ru.cloudwithout.commonmodels.common.dto.AccountDto;
@@ -26,7 +26,7 @@ public class AccountService {
     private static final BigDecimal MAX_SUM = new BigDecimal("99999999.99");
 
     private final AccountRepository accountRepository;
-    private final NotificationsClient notificationsClient;
+    private final NotificationKafkaProducer notificationKafkaProducer;
 
     public CommonResponse getAccount(String login) {
         Account account = accountRepository.findByLogin(login)
@@ -58,30 +58,27 @@ public class AccountService {
                 .orElseThrow(() -> new IllegalArgumentException("Аккаунт не найден: " + login));
 
         BigDecimal sum = account.getSum();
-
         List<String> errors = new ArrayList<>();
         String info = null;
+
         if (action == CashAction.WITHDRAW && sum.compareTo(BigDecimal.valueOf(value)) < 0) {
             errors.add("Недостаточно средств на счёте");
-            sendNotificationSafely(
-                    "cash-" + action.name().toLowerCase(),
-                    "Операция отклонена для " + login + ": недостаточно средств"
-            );
+            sendNotificationSafely("cash-" + action.name().toLowerCase(),
+                    "Операция отклонена для " + login + ": недостаточно средств");
         } else {
             BigDecimal newSum = action == CashAction.WITHDRAW
                     ? sum.subtract(BigDecimal.valueOf(value))
                     : sum.add(BigDecimal.valueOf(value));
             if (newSum.compareTo(MAX_SUM) > 0) {
                 errors.add("Сумма на счёте превышает допустимый лимит (99 999 999,99 руб.)");
-                sendNotificationSafely(
-                        "cash-" + action.name().toLowerCase(),
-                        "Операция отклонена для " + login + ": превышен лимит счёта"
-                );
+                sendNotificationSafely("cash-" + action.name().toLowerCase(),
+                        "Операция отклонена для " + login + ": превышен лимит счёта");
             } else {
                 account.setSum(newSum);
                 accountRepository.save(account);
                 info = action == CashAction.WITHDRAW ? "Снято руб.: " + value : "Положено руб.: " + value;
-                sendNotificationSafely("cash-" + action.name().toLowerCase(), "Операция для " + login + ": " + info);
+                sendNotificationSafely("cash-" + action.name().toLowerCase(),
+                        "Операция для " + login + ": " + info);
             }
         }
 
@@ -97,9 +94,9 @@ public class AccountService {
 
         BigDecimal sumFrom = accountFrom.getSum();
         BigDecimal sumTo = accountTo.getSum();
-
         List<String> errors = new ArrayList<>();
         String info = null;
+
         if (sumFrom.compareTo(BigDecimal.valueOf(value)) < 0) {
             errors.add("Недостаточно средств на счёте");
             sendNotificationSafely("transfer", "Перевод отклонён для " + from + ": недостаточно средств");
@@ -114,7 +111,8 @@ public class AccountService {
                 accountTo.setSum(newSumTo);
                 accountRepository.saveAll(List.of(accountFrom, accountTo));
                 info = "Перевод выполнен успешно";
-                sendNotificationSafely("transfer", "Перевод выполнен: from=" + from + ", to=" + to + ", value=" + value);
+                sendNotificationSafely("transfer",
+                        "Перевод выполнен: from=" + from + ", to=" + to + ", value=" + value);
             }
         }
 
@@ -125,9 +123,7 @@ public class AccountService {
         List<AccountDto> others = accountRepository.findAllByLoginNot(login).stream()
                 .map(a -> new AccountDto(a.getLogin(), a.getFirstLastName()))
                 .toList();
-
         log.info("found other accounts: {}", others);
-
         return CommonResponse.builder()
                 .login(account.getLogin())
                 .firstLastName(account.getFirstLastName())
@@ -141,7 +137,7 @@ public class AccountService {
 
     private void sendNotificationSafely(String operation, String message) {
         try {
-            notificationsClient.send(operation, message);
+            notificationKafkaProducer.send(operation, message);
         } catch (Exception exception) {
             log.warn("Не удалось отправить уведомление: operation={}, message={}", operation, message, exception);
         }

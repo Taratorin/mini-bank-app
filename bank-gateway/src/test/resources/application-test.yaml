@@ -1,0 +1,3 @@
+ROUTES_ACCOUNTS_URI: http://localhost:8083
+ROUTES_CASH_URI: http://localhost:8085
+ROUTES_TRANSFER_URI: http://localhost:8086
