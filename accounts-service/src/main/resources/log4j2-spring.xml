@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <Properties>
+        <Property name="APP_NAME">${spring:spring.application.name:-app}</Property>
+        <Property name="LOGSTASH_HOST">${spring:bank.observability.logstash-host:-127.0.0.1}</Property>
+        <Property name="LOGSTASH_PORT">${spring:bank.observability.logstash-port:-5000}</Property>
+    </Properties>
+
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <JsonLayout compact="true" eventEol="true" properties="true" stacktraceAsString="true">
+                <KeyValuePair key="app" value="${APP_NAME}"/>
+                <KeyValuePair key="traceId" value="$${ctx:traceId:-}"/>
+                <KeyValuePair key="spanId" value="$${ctx:spanId:-}"/>
+            </JsonLayout>
+        </Console>
+        <Socket name="Logstash" host="${LOGSTASH_HOST}" port="${LOGSTASH_PORT}" protocol="TCP"
+                reconnectionDelayMillis="5000">
+            <JsonLayout compact="true" eventEol="true" properties="true" stacktraceAsString="true">
+                <KeyValuePair key="app" value="${APP_NAME}"/>
+                <KeyValuePair key="traceId" value="$${ctx:traceId:-}"/>
+                <KeyValuePair key="spanId" value="$${ctx:spanId:-}"/>
+            </JsonLayout>
+        </Socket>
+    </Appenders>
+
+    <Loggers>
+        <Root level="info">
+            <AppenderRef ref="Console"/>
+            <SpringProfile name="!test">
+                <AppenderRef ref="Logstash"/>
+            </SpringProfile>
+        </Root>
+    </Loggers>
+</Configuration>
