@@ -38,6 +38,23 @@ data:
         producer:
           key-serializer: org.apache.kafka.common.serialization.StringSerializer
           value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    management:
+      endpoints:
+        web:
+          exposure:
+            include: health,info,prometheus,metrics
+      tracing:
+        sampling:
+          probability: 1
+        export:
+          zipkin:
+            endpoint: {{ .Values.observability.zipkinEndpoint }}
+      zipkin:
+        tracing:
+          endpoint: {{ .Values.observability.zipkinEndpoint }}
     bank:
       kafka:
         topic: notifications
+      observability:
+        logstash-host: {{ .Values.observability.logstashHost }}
+        logstash-port: {{ .Values.observability.logstashPort }}
