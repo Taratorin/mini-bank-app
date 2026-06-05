@@ -1,8 +1,8 @@
 package ru.cloudwithout.accountsservice.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.cloudwithout.accountsservice.kafka.NotificationKafkaProducer;
@@ -30,8 +30,15 @@ class AccountServiceTest {
     @Mock
     private NotificationKafkaProducer notificationKafkaProducer;
 
-    @InjectMocks
     private AccountService accountService;
+
+    @BeforeEach
+    void setUp() {
+        accountService = new AccountService(
+                accountRepository,
+                notificationKafkaProducer
+        );
+    }
 
     @Test
     void editCashPutShouldIncreaseBalance() {
@@ -46,7 +53,7 @@ class AccountServiceTest {
         assertThat(response.getErrors()).isEmpty();
         assertThat(response.getInfo()).contains("Положено руб.: 50");
         verify(accountRepository).save(serg);
-        verify(notificationKafkaProducer).send(eq("cash-deposit"), any());
+        verify(notificationKafkaProducer).send(eq("serg"), eq("cash-deposit"), any());
     }
 
     @Test

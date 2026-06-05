@@ -47,7 +47,7 @@ public class AccountService {
         account.setFirstLastName(name);
         account.setBirthDate(birthdate);
         accountRepository.save(account);
-        sendNotificationSafely("edit-account", "Профиль пользователя " + login + " обновлён");
+        sendNotificationSafely(login, "edit-account", "Профиль пользователя " + login + " обновлён");
 
         return getCommonResponse(login, account, null, null);
     }
@@ -63,7 +63,7 @@ public class AccountService {
 
         if (action == CashAction.WITHDRAW && sum.compareTo(BigDecimal.valueOf(value)) < 0) {
             errors.add("Недостаточно средств на счёте");
-            sendNotificationSafely("cash-" + action.name().toLowerCase(),
+            sendNotificationSafely(login, "cash-" + action.name().toLowerCase(),
                     "Операция отклонена для " + login + ": недостаточно средств");
         } else {
             BigDecimal newSum = action == CashAction.WITHDRAW
@@ -71,13 +71,13 @@ public class AccountService {
                     : sum.add(BigDecimal.valueOf(value));
             if (newSum.compareTo(MAX_SUM) > 0) {
                 errors.add("Сумма на счёте превышает допустимый лимит (99 999 999,99 руб.)");
-                sendNotificationSafely("cash-" + action.name().toLowerCase(),
+                sendNotificationSafely(login, "cash-" + action.name().toLowerCase(),
                         "Операция отклонена для " + login + ": превышен лимит счёта");
             } else {
                 account.setSum(newSum);
                 accountRepository.save(account);
                 info = action == CashAction.WITHDRAW ? "Снято руб.: " + value : "Положено руб.: " + value;
-                sendNotificationSafely("cash-" + action.name().toLowerCase(),
+                sendNotificationSafely(login, "cash-" + action.name().toLowerCase(),
                         "Операция для " + login + ": " + info);
             }
         }
@@ -99,19 +99,19 @@ public class AccountService {
 
         if (sumFrom.compareTo(BigDecimal.valueOf(value)) < 0) {
             errors.add("Недостаточно средств на счёте");
-            sendNotificationSafely("transfer", "Перевод отклонён для " + from + ": недостаточно средств");
+            sendNotificationSafely(from, "transfer", "Перевод отклонён для " + from + ": недостаточно средств");
         } else {
             BigDecimal newSumFrom = sumFrom.subtract(BigDecimal.valueOf(value));
             BigDecimal newSumTo = sumTo.add(BigDecimal.valueOf(value));
             if (newSumTo.compareTo(MAX_SUM) > 0) {
                 errors.add("Сумма на счёте получателя превышает допустимый лимит (99 999 999,99 руб.)");
-                sendNotificationSafely("transfer", "Перевод отклонён для " + to + ": превышен лимит счёта");
+                sendNotificationSafely(from, "transfer", "Перевод отклонён для " + to + ": превышен лимит счёта");
             } else {
                 accountFrom.setSum(newSumFrom);
                 accountTo.setSum(newSumTo);
                 accountRepository.saveAll(List.of(accountFrom, accountTo));
                 info = "Перевод выполнен успешно";
-                sendNotificationSafely("transfer",
+                sendNotificationSafely(from, "transfer",
                         "Перевод выполнен: from=" + from + ", to=" + to + ", value=" + value);
             }
         }
@@ -135,11 +135,12 @@ public class AccountService {
                 .build();
     }
 
-    private void sendNotificationSafely(String operation, String message) {
+    private void sendNotificationSafely(String login, String operation, String message) {
         try {
-            notificationKafkaProducer.send(operation, message);
+            notificationKafkaProducer.send(login, operation, message);
         } catch (Exception exception) {
-            log.warn("Не удалось отправить уведомление: operation={}, message={}", operation, message, exception);
+            log.warn("Не удалось отправить уведомление: login={}, operation={}, message={}",
+                    login, operation, message, exception);
         }
     }
 
