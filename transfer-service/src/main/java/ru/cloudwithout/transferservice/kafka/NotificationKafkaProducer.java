@@ -17,8 +17,8 @@ public class NotificationKafkaProducer {
     @Value("${bank.kafka.topic}")
     private String topic;
 
-    public void send(String operation, String message) {
-        NotificationRequest request = new NotificationRequest("transfer-service", operation, message);
+    public void send(String login, String operation, String message) {
+        NotificationRequest request = new NotificationRequest("transfer-service", operation, message, login);
         log.info("Отправляем уведомление в Kafka: topic={}, operation={}, message={}", topic, operation, message);
         kafkaTemplate.send(topic, request);
         log.info("Уведомление отправлено: operation={}", operation);

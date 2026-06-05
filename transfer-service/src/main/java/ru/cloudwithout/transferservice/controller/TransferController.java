@@ -1,5 +1,6 @@
 package ru.cloudwithout.transferservice.controller;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,6 +20,7 @@ public class TransferController {
 
     private final AccountsClient accountsClient;
     private final NotificationKafkaProducer notificationKafkaProducer;
+    private final MeterRegistry meterRegistry;
 
     @PostMapping()
     @PreAuthorize("hasRole('SERVICE')")
@@ -28,11 +30,15 @@ public class TransferController {
         CommonResponse response = accountsClient.transfer(from, value, to);
         try {
             notificationKafkaProducer.send(
+                    from,
                     "transfer",
                     "Обработан запрос transfer-service: from=" + from + ", to=" + to + ", value=" + value
             );
         } catch (Exception exception) {
             log.warn("Не удалось отправить уведомление о переводе: from={}, to={}, value={}", from, to, value, exception);
+        }
+        if (response.getErrors() != null && !response.getErrors().isEmpty()) {
+            meterRegistry.counter("bank.transfer.failed", "from", from, "to", to).increment();
         }
         log.info("Запрос transfer-service обработан: from={}, to={}, value={}", from, to, value);
         return response;
