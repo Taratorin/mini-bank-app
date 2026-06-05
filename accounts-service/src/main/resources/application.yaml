@@ -1,3 +1,5 @@
 spring:
   application:
     name: accounts-service
+  config:
+    import: optional:classpath:application-observability.yaml

@@ -1,0 +1,32 @@
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+  tracing:
+    sampling:
+      probability: 1
+    export:
+      zipkin:
+        endpoint: ${ZIPKIN_ENDPOINT:http://127.0.0.1:9411/api/v2/spans}
+  zipkin:
+    tracing:
+      endpoint: ${ZIPKIN_ENDPOINT:http://127.0.0.1:9411/api/v2/spans}
+
+bank:
+  observability:
+    logstash-host: ${LOGSTASH_HOST:127.0.0.1}
+    logstash-port: ${LOGSTASH_PORT:5000}
+
+logging:
+  config: classpath:log4j2-spring.xml
+  level:
+    ru.cloudwithout: info

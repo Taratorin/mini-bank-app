@@ -1,3 +1,5 @@
 spring:
   application:
     name: transfer-service
+  config:
+    import: optional:classpath:application-observability.yaml

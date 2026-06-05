@@ -1,6 +1,8 @@
 spring:
   application:
     name: bank-ui
+  config:
+    import: optional:classpath:application-observability.yaml
   security:
     oauth2:
       client:
