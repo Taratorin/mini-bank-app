@@ -1,0 +1,9 @@
+services:
+  zipkin:
+    image: openzipkin/zipkin:3.6.1
+    container_name: bank-zipkin
+    ports:
+      - "9411:9411"
+    environment:
+      STORAGE_TYPE: mem
+    restart: unless-stopped
