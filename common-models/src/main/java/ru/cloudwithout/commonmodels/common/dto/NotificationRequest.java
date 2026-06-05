@@ -1,4 +1,4 @@
 package ru.cloudwithout.commonmodels.common.dto;
 
-public record NotificationRequest(String service, String operation, String message) {
+public record NotificationRequest(String service, String operation, String message, String login) {
 }
