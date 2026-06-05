@@ -10,6 +10,8 @@
 – `cash-service` – пополнение и снятие денежных средств  
 – `transfer-service` – переводы денежных средств между пользователями  
 – `notifications-service` – потребитель Kafka, уведомления пишутся в лог  
+– `load-generator` – утилита для имитации нагрузки (запускается локально, 
+в Kubernetes не деплоится)
 
 Keycloak для аутентификации и авторизации – 
 в `auxiliary/docker-compose.yml` (снаружи кластера).  
@@ -18,6 +20,13 @@ PostgreSQL и Kafka – в Kubernetes, Helm-сабчарты `postgres` и `kafk
 (скрипты в сабчарте `postgres`, каталог `/docker-entrypoint-initdb.d/`).  
 Уведомления: `accounts-service`, `cash-service`, `transfer-service` 
 публикуют в топик `notifications`, `notifications-service` читает из Kafka.
+
+Observability (на хосте, вне кластера): подпроекты `zipkin/`, `prometheus/`, 
+`grafana/`, `elk/` -  
+трейсы (Micrometer в Zipkin), метрики (`/actuator/prometheus`), 
+логи (Log4j2 через Logstash в Elasticsearch).  
+Из подов адреса задаются в `helm/bank-app/values.yaml` 
+(`observability.*`, как для Keycloak - `172.18.0.1`).
 
 ## Требования
 
@@ -48,13 +57,21 @@ PostgreSQL и Kafka – в Kubernetes, Helm-сабчарты `postgres` и `kafk
 
 Схема: микросервисы и UI запускаются в кластере Kubernetes, Keycloak – на хосте в Docker.
 
-### 1. Keycloak
+### 1. Keycloak и Observability
 
 ```bash
 docker compose -f auxiliary/docker-compose.yml up -d keycloak
+docker compose -f zipkin/docker-compose.yml up -d
+docker compose -f prometheus/docker-compose.yml up -d
+docker compose -f grafana/docker-compose.yml up -d
+docker compose -f elk/docker-compose.yml up -d
 ```
 
-Keycloak: `http://localhost:8080` (админ `admin` / `admin`).
+Keycloak: `http://localhost:8080` (админ `admin` / `admin`).  
+Zipkin: `http://localhost:9411` · Prometheus: `http://localhost:9090` 
+· Grafana: `http://localhost:3000` (admin/admin) ·  
+Kibana: `http://localhost:5602` (ES `http://localhost:9201`, Logstash TCP `:5000`).  
+В Kibana: Data View `bank-logs-*`, поле `@timestamp`.
 
 Из подов кластера Keycloak должен быть доступен по адресу
 из `helm/bank-app/values.yaml` (`keycloak.issuerUri`).  
@@ -111,6 +128,17 @@ kubectl get pods
 
 Дождаться статуса `Running` у всех подов.
 
+Метрики для Prometheus (после деплоя, отдельный терминал, `--address 0.0.0.0` 
+- чтобы Prometheus в Docker видел хост):
+
+```bash
+kubectl port-forward --address 0.0.0.0 svc/bank-app-bank-gateway 8081:8081 &
+kubectl port-forward --address 0.0.0.0 svc/bank-app-accounts-service 8083:8083 &
+kubectl port-forward --address 0.0.0.0 svc/bank-app-bank-ui 8084:8084 &
+kubectl port-forward --address 0.0.0.0 svc/bank-app-cash-service 8085:8085 &
+kubectl port-forward --address 0.0.0.0 svc/bank-app-transfer-service 8086:8086 &
+```
+
 ### 5. UI
 
 Открыть UI (для Kind – `http://localhost:30277`), войти через Keycloak.
@@ -136,7 +164,7 @@ helm test bank-app
 ```
 
 PostgreSQL и Kafka поднимаются чартом (`bank-app-postgres`, `bank-app-kafka`).  
-Инициализация БД — в Postgres-чарте;
+Инициализация БД - в Postgres-чарте;
 `accounts-service` не выполняет `spring.sql.init` при старте.
 
 Запуск сервисов – каждый в отдельном терминале:
@@ -157,6 +185,45 @@ PostgreSQL и Kafka поднимаются чартом (`bank-app-postgres`, `b
 Зонтичный чарт: `helm/bank-app/`.  
 Сабчарты: `postgres`, `kafka`, `bank-ui`, `bank-gateway`, `accounts-service`, `cash-service`, `transfer-service`, `notifications-service`.
 
-Настройки – в `helm/bank-app/values.yaml` (образы, URL Keycloak, JDBC, маршруты Gateway).
+Настройки – в `helm/bank-app/values.yaml` 
+(образы, URL Keycloak, JDBC, маршруты Gateway, блок `observability`).
 
-Конфигурация сервисов – ConfigMap и Secret, DNS-имена – Service Kubernetes (`bank-app-<имя-сервиса>`).
+Конфигурация сервисов – ConfigMap и Secret, DNS-имена – Service Kubernetes 
+(`bank-app-<имя-сервиса>`).
+
+Кастомные метрики: `bank_cash_withdraw_failed_total` (login), 
+`bank_transfer_failed_total` (from, to),  
+`bank_notification_send_failed_total` (login). Алерты - `prometheus/alerts.yml`.
+
+## Генератор нагрузки (`load-generator`)
+
+Модуль для демонстрации observability: генерирует HTTP-трафик в `bank-gateway` 
+через Client Credentials (токены сервисов Keycloak, без пользовательских сессий). 
+Запускается на хосте из IDE или терминала.
+
+**Предусловия:** подняты Keycloak, кластер с `bank-app`, работают port-forward на gateway (`8081`).
+
+```bash
+./gradlew :load-generator:bootRun
+```
+
+Каждые 10 секунд в лог пишется статистика:
+`dispatched`, `completed`, `failed`, `businessErrors`.
+
+Настройки - `load-generator/src/main/resources/application.yaml` (`bank.load.*`):
+
+– `gateway-base-url` - адрес gateway (по умолчанию `http://localhost:8081`)  
+– `requests-per-second` - целевой RPS  
+– `concurrency` - параллелизм исходящих запросов  
+– `logins` - пул логинов для операций
+
+Тестовые пользователи в БД: 
+`serg`, `alex`, `test`, `user01`–`user10` 
+(скрипт `postgres/files/init/02-data.sql`).
+
+Генератор нагрузки реализует сценарии:
+- Пополнение
+- Снятие (успех/ошибка)
+- Перевод (успех/ошибка)
+- Редактирование профиля
+- Чтение аккаунта
