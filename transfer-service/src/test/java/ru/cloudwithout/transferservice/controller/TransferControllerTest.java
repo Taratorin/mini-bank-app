@@ -8,6 +8,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import io.micrometer.core.instrument.MeterRegistry;
 import ru.cloudwithout.commonmodels.common.dto.CommonResponse;
 import ru.cloudwithout.transferservice.client.AccountsClient;
 import ru.cloudwithout.transferservice.kafka.NotificationKafkaProducer;
@@ -17,6 +18,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -30,6 +32,9 @@ class TransferControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private MeterRegistry meterRegistry;
 
     @MockitoBean
     private AccountsClient accountsClient;
@@ -57,7 +62,28 @@ class TransferControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.sum").value(900.00));
 
-        verify(notificationKafkaProducer).send("transfer", "Обработан запрос transfer-service: from=test, to=alex, value=100");
+        verify(notificationKafkaProducer).send("test", "transfer", "Обработан запрос transfer-service: from=test, to=alex, value=100");
+    }
+
+    @Test
+    void transferFailureShouldIncrementMetric() throws Exception {
+        CommonResponse response = response("test", "900.00");
+        response.setErrors(List.of("Недостаточно средств на счёте"));
+        when(accountsClient.transfer("test", 100, "alex")).thenReturn(response);
+
+        mockMvc.perform(post("/transfer")
+                        .with(bearerToken())
+                        .param("from", "test")
+                        .param("to", "alex")
+                        .param("value", "100"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.errors[0]").value("Недостаточно средств на счёте"));
+
+        assertThat(meterRegistry.get("bank.transfer.failed")
+                .tag("from", "test")
+                .tag("to", "alex")
+                .counter()
+                .count()).isEqualTo(1.0);
     }
 
     @Test
