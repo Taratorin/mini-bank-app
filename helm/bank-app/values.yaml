@@ -58,7 +58,6 @@ accounts-service:
   keycloak:
     issuerUri: http://172.18.0.1:8080/realms/bank-realm
   kafka:
-    bootstrapServers: bank-app-kafka-headless.default.svc.cluster.local:9092
     topic: notifications
   postgres:
     jdbcUrl: jdbc:postgresql://bank-app-postgres:5432/bank-app?currentSchema=accounts
@@ -79,7 +78,6 @@ cash-service:
   accounts:
     baseUrl: http://bank-app-accounts-service:8083
   kafka:
-    bootstrapServers: bank-app-kafka-headless.default.svc.cluster.local:9092
     topic: notifications
   oauth:
     cashClientSecret: cash-service-secret
@@ -97,7 +95,6 @@ transfer-service:
   accounts:
     baseUrl: http://bank-app-accounts-service:8083
   kafka:
-    bootstrapServers: bank-app-kafka-headless.default.svc.cluster.local:9092
     topic: notifications
   oauth:
     clientSecret: transfer-service-secret
@@ -112,7 +109,6 @@ notifications-service:
   keycloak:
     issuerUri: http://172.18.0.1:8080/realms/bank-realm
   kafka:
-    bootstrapServers: bank-app-kafka-headless.default.svc.cluster.local:9092
     topic: notifications
     consumerGroup: notifications-service
 

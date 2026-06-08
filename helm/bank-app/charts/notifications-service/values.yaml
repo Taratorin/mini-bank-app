@@ -29,6 +29,5 @@ keycloak:
   issuerUri: http://172.18.0.1:8080/realms/bank-realm
 
 kafka:
-  bootstrapServers: bank-app-kafka-headless.default.svc.cluster.local:9092
   topic: notifications
   consumerGroup: notifications-service

@@ -12,7 +12,7 @@ data:
       main:
         web-application-type: none
       kafka:
-        bootstrap-servers: {{ .Values.kafka.bootstrapServers }}
+        bootstrap-servers: {{ .Release.Name }}-kafka-headless.{{ .Release.Namespace }}.svc.cluster.local:9092
         consumer:
           group-id: {{ .Values.kafka.consumerGroup }}
           auto-offset-reset: earliest
