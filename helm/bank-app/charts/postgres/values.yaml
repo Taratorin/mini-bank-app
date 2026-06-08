@@ -4,4 +4,4 @@ database: bank-app
 username: user
 password: sa
 
-storage: 10Mi
+storage: 1 GiB
