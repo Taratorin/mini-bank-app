@@ -50,8 +50,9 @@ public class CashClient {
 
     private CommonResponse editCashFallback(String login, int value, CashAction action, Throwable throwable) {
         log.warn("cash-service временно недоступен: login={}, value={}, action={}", login, value, action, throwable);
-        CommonResponse response = new CommonResponse(List.of());
-        response.setErrors(List.of("Сервис операций со счетом временно недоступен, операция не выполнена"));
-        return response;
+        return CommonResponse.builder()
+                .accounts(List.of())
+                .errors(List.of("Сервис операций со счетом временно недоступен, операция не выполнена"))
+                .build();
     }
 }

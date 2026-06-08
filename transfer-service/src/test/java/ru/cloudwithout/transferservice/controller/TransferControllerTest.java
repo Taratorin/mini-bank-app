@@ -108,7 +108,7 @@ class TransferControllerTest {
     }
 
     private CommonResponse response(String login, String sum) {
-        CommonResponse response = new CommonResponse(List.of());
+        CommonResponse response = CommonResponse.builder().accounts(List.of()).build();
         response.setLogin(login);
         response.setFirstLastName("Иван Иванович");
         response.setBirthDate(LocalDate.of(1990, 1, 1));

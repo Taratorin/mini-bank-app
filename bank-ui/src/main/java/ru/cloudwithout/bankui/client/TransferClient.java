@@ -49,8 +49,9 @@ public class TransferClient {
 
     private CommonResponse transferFallback(String from, int value, String to, Throwable throwable) {
         log.warn("transfer-service временно недоступен: from={}, to={}, value={}", from, to, value, throwable);
-        CommonResponse response = new CommonResponse(List.of());
-        response.setErrors(List.of("Сервис переводов временно недоступен, перевод не выполнен"));
-        return response;
+        return CommonResponse.builder()
+                .accounts(List.of())
+                .errors(List.of("Сервис переводов временно недоступен, перевод не выполнен"))
+                .build();
     }
 }
