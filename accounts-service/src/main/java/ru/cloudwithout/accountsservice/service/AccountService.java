@@ -1,7 +1,9 @@
 package ru.cloudwithout.accountsservice.service;
 
+import jakarta.persistence.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.cloudwithout.accountsservice.kafka.NotificationKafkaProducer;
@@ -109,10 +111,16 @@ public class AccountService {
             } else {
                 accountFrom.setSum(newSumFrom);
                 accountTo.setSum(newSumTo);
-                accountRepository.saveAll(List.of(accountFrom, accountTo));
-                info = "Перевод выполнен успешно";
-                sendNotificationSafely(from, "transfer",
-                        "Перевод выполнен: from=" + from + ", to=" + to + ", value=" + value);
+                try {
+                    accountRepository.saveAll(List.of(accountFrom, accountTo));
+                    accountRepository.flush();
+                    info = "Перевод выполнен успешно";
+                    sendNotificationSafely(from, "transfer",
+                            "Перевод выполнен: from=" + from + ", to=" + to + ", value=" + value);
+                } catch (OptimisticLockException | ObjectOptimisticLockingFailureException e) {
+                    errors.add("Не удалось выполнить операцию, попробуйте снова");
+                    sendNotificationSafely(from, "transfer", "Не удалось выполнить операцию");
+                }
             }
         }
 

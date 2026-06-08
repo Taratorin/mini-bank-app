@@ -17,8 +17,6 @@ data:
       sql:
         init:
           mode: never
-          schema-locations: classpath:schema.sql
-          data-locations: classpath:data.sql
       security:
         oauth2:
           resourceserver:
