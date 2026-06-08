@@ -30,6 +30,8 @@ spec:
               port: {{ .Values.container.port }}
             initialDelaySeconds: 30
             periodSeconds: 5
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
           envFrom:
             - configMapRef:
                 name: {{ .Release.Name }}-bank-gateway
