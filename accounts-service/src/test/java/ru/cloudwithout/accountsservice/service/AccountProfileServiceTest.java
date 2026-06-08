@@ -6,6 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.cloudwithout.accountsservice.kafka.NotificationKafkaProducer;
+import ru.cloudwithout.accountsservice.kafka.NotificationPublisher;
 import ru.cloudwithout.accountsservice.model.Account;
 import ru.cloudwithout.accountsservice.repository.AccountRepository;
 import ru.cloudwithout.commonmodels.common.dto.CommonResponse;
@@ -30,13 +31,15 @@ class AccountProfileServiceTest {
     @Mock
     private NotificationKafkaProducer notificationKafkaProducer;
 
+    private NotificationPublisher notificationPublisher;
     private AccountProfileService accountProfileService;
 
     @BeforeEach
     void setUp() {
+        notificationPublisher = new NotificationPublisher(notificationKafkaProducer);
         accountProfileService = new AccountProfileService(
                 accountRepository,
-                notificationKafkaProducer
+                notificationPublisher
         );
     }
 

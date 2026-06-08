@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.cloudwithout.accountsservice.kafka.NotificationKafkaProducer;
+import ru.cloudwithout.accountsservice.kafka.NotificationPublisher;
 import ru.cloudwithout.accountsservice.model.Account;
 import ru.cloudwithout.accountsservice.repository.AccountRepository;
 import ru.cloudwithout.commonmodels.common.dto.AccountDto;
@@ -21,7 +21,7 @@ import static java.time.temporal.ChronoUnit.YEARS;
 public class AccountProfileService {
 
     private final AccountRepository accountRepository;
-    private final NotificationKafkaProducer notificationKafkaProducer;
+    private final NotificationPublisher notificationPublisher;
 
     public CommonResponse getAccount(String login) {
         Account account = accountRepository.findByLogin(login)
@@ -42,7 +42,7 @@ public class AccountProfileService {
         account.setFirstLastName(name);
         account.setBirthDate(birthdate);
         accountRepository.save(account);
-        sendNotificationSafely(login, "edit-account", "Профиль пользователя " + login + " обновлён");
+        notificationPublisher.sendAfterCommit(login, "edit-account", "Профиль пользователя " + login + " обновлён");
 
         return getCommonResponse(login, account, null, null);
     }
@@ -61,15 +61,6 @@ public class AccountProfileService {
                 .errors(errors)
                 .info(info)
                 .build();
-    }
-
-    private void sendNotificationSafely(String login, String operation, String message) {
-        try {
-            notificationKafkaProducer.send(login, operation, message);
-        } catch (Exception exception) {
-            log.warn("Не удалось отправить уведомление: login={}, operation={}, message={}",
-                    login, operation, message, exception);
-        }
     }
 
     private boolean isBirthdayNotValid(LocalDate birthdate) {

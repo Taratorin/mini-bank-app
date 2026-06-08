@@ -7,7 +7,7 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
-import ru.cloudwithout.accountsservice.kafka.NotificationKafkaProducer;
+import ru.cloudwithout.accountsservice.kafka.NotificationPublisher;
 import ru.cloudwithout.accountsservice.model.Account;
 import ru.cloudwithout.accountsservice.repository.AccountRepository;
 import ru.cloudwithout.commonmodels.common.dto.AccountDto;
@@ -26,7 +26,7 @@ public class AccountMoneyService {
     private static final BigDecimal MAX_SUM = new BigDecimal("99999999.99");
 
     private final AccountRepository accountRepository;
-    private final NotificationKafkaProducer notificationKafkaProducer;
+    private final NotificationPublisher notificationPublisher;
 
     @Transactional
     public CommonResponse editCash(String login, int value, CashAction action) {
@@ -39,7 +39,7 @@ public class AccountMoneyService {
 
         if (action == CashAction.WITHDRAW && sum.compareTo(BigDecimal.valueOf(value)) < 0) {
             errors.add("Недостаточно средств на счёте");
-            sendNotificationSafely(login, "cash-" + action.name().toLowerCase(),
+            notificationPublisher.sendAfterCommit(login, "cash-" + action.name().toLowerCase(),
                     "Операция отклонена для " + login + ": недостаточно средств");
         } else {
             BigDecimal newSum = action == CashAction.WITHDRAW
@@ -47,13 +47,13 @@ public class AccountMoneyService {
                     : sum.add(BigDecimal.valueOf(value));
             if (newSum.compareTo(MAX_SUM) > 0) {
                 errors.add("Сумма на счёте превышает допустимый лимит (99 999 999,99 руб.)");
-                sendNotificationSafely(login, "cash-" + action.name().toLowerCase(),
+                notificationPublisher.sendAfterCommit(login, "cash-" + action.name().toLowerCase(),
                         "Операция отклонена для " + login + ": превышен лимит счёта");
             } else {
                 account.setSum(newSum);
                 accountRepository.save(account);
                 info = action == CashAction.WITHDRAW ? "Снято руб.: " + value : "Положено руб.: " + value;
-                sendNotificationSafely(login, "cash-" + action.name().toLowerCase(),
+                notificationPublisher.sendAfterCommit(login, "cash-" + action.name().toLowerCase(),
                         "Операция для " + login + ": " + info);
             }
         }
@@ -75,13 +75,13 @@ public class AccountMoneyService {
 
         if (sumFrom.compareTo(BigDecimal.valueOf(value)) < 0) {
             errors.add("Недостаточно средств на счёте");
-            sendNotificationSafely(from, "transfer", "Перевод отклонён для " + from + ": недостаточно средств");
+            notificationPublisher.sendAfterCommit(from, "transfer", "Перевод отклонён для " + from + ": недостаточно средств");
         } else {
             BigDecimal newSumFrom = sumFrom.subtract(BigDecimal.valueOf(value));
             BigDecimal newSumTo = sumTo.add(BigDecimal.valueOf(value));
             if (newSumTo.compareTo(MAX_SUM) > 0) {
                 errors.add("Сумма на счёте получателя превышает допустимый лимит (99 999 999,99 руб.)");
-                sendNotificationSafely(from, "transfer", "Перевод отклонён для " + to + ": превышен лимит счёта");
+                notificationPublisher.sendAfterCommit(from, "transfer", "Перевод отклонён для " + to + ": превышен лимит счёта");
             } else {
                 accountFrom.setSum(newSumFrom);
                 accountTo.setSum(newSumTo);
@@ -89,12 +89,12 @@ public class AccountMoneyService {
                     accountRepository.saveAll(List.of(accountFrom, accountTo));
                     accountRepository.flush();
                     info = "Перевод выполнен успешно";
-                    sendNotificationSafely(from, "transfer",
+                    notificationPublisher.sendAfterCommit(from, "transfer",
                             "Перевод выполнен: from=" + from + ", to=" + to + ", value=" + value);
                 } catch (OptimisticLockException | ObjectOptimisticLockingFailureException e) {
                     TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
                     errors.add("Не удалось выполнить операцию, попробуйте снова");
-                    sendNotificationSafely(from, "transfer", "Не удалось выполнить операцию");
+                    notificationPublisher.sendAfterCommit(from, "transfer", "Не удалось выполнить операцию");
                 }
             }
         }
@@ -118,12 +118,4 @@ public class AccountMoneyService {
                 .build();
     }
 
-    private void sendNotificationSafely(String login, String operation, String message) {
-        try {
-            notificationKafkaProducer.send(login, operation, message);
-        } catch (Exception exception) {
-            log.warn("Не удалось отправить уведомление: login={}, operation={}, message={}",
-                    login, operation, message, exception);
-        }
-    }
 }
