@@ -28,10 +28,10 @@ import java.util.concurrent.TimeoutException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class AccountServiceConcurrentTransferTest extends AccountsIntegrationTest {
+class AccountMoneyServiceConcurrentTransferTest extends AccountsIntegrationTest {
 
     @Autowired
-    private AccountService accountService;
+    private AccountMoneyService accountMoneyService;
 
     @Autowired
     private AccountRepository accountRepository;
@@ -65,7 +65,7 @@ class AccountServiceConcurrentTransferTest extends AccountsIntegrationTest {
                 futures.add(executor.submit(() -> {
                     ready.countDown();
                     start.await();
-                    return accountService.transfer("serg", 50, to);
+                    return accountMoneyService.transfer("serg", 50, to);
                 }));
             }
 

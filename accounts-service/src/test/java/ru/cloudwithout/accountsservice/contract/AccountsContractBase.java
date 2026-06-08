@@ -9,7 +9,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import ru.cloudwithout.accountsservice.service.AccountService;
+import ru.cloudwithout.accountsservice.service.AccountMoneyService;
+import ru.cloudwithout.accountsservice.service.AccountProfileService;
 import ru.cloudwithout.accountsservice.support.AccountsIntegrationTest;
 import ru.cloudwithout.commonmodels.common.dto.CashAction;
 import ru.cloudwithout.commonmodels.common.dto.CommonResponse;
@@ -27,7 +28,10 @@ public abstract class AccountsContractBase extends AccountsIntegrationTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private AccountService accountService;
+    private AccountProfileService accountProfileService;
+
+    @MockitoBean
+    private AccountMoneyService accountMoneyService;
 
     @BeforeEach
     void setupContracts() {
@@ -40,7 +44,7 @@ public abstract class AccountsContractBase extends AccountsIntegrationTest {
                 )
         );
 
-        when(accountService.getAccount("test"))
+        when(accountProfileService.getAccount("test"))
                 .thenReturn(CommonResponse.builder()
                         .login("test")
                         .firstLastName("Иван Иванович")
@@ -51,7 +55,7 @@ public abstract class AccountsContractBase extends AccountsIntegrationTest {
                         .info(null)
                         .build());
 
-        when(accountService.editCash("test", 100, CashAction.DEPOSIT))
+        when(accountMoneyService.editCash("test", 100, CashAction.DEPOSIT))
                 .thenReturn(CommonResponse.builder()
                         .login("test")
                         .firstLastName("Иван Иванович")

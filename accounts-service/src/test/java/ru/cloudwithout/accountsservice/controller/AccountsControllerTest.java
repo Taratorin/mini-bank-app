@@ -6,7 +6,8 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import ru.cloudwithout.accountsservice.service.AccountService;
+import ru.cloudwithout.accountsservice.service.AccountMoneyService;
+import ru.cloudwithout.accountsservice.service.AccountProfileService;
 import ru.cloudwithout.accountsservice.support.AccountsIntegrationTest;
 import ru.cloudwithout.commonmodels.common.dto.CashAction;
 import ru.cloudwithout.commonmodels.common.dto.CommonResponse;
@@ -29,12 +30,15 @@ class AccountsControllerTest extends AccountsIntegrationTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private AccountService accountService;
+    private AccountProfileService accountProfileService;
+
+    @MockitoBean
+    private AccountMoneyService accountMoneyService;
 
     @Test
     @WithMockUser(roles = "SERVICE")
     void getByLoginShouldReturnAccountJson() throws Exception {
-        when(accountService.getAccount("test")).thenReturn(response("test", "Иван Иванович", "100.00"));
+        when(accountProfileService.getAccount("test")).thenReturn(response("test", "Иван Иванович", "100.00"));
 
         mockMvc.perform(get("/accounts/login").param("login", "test"))
                 .andExpect(status().isOk())
@@ -45,7 +49,7 @@ class AccountsControllerTest extends AccountsIntegrationTest {
     @Test
     @WithMockUser(roles = "SERVICE")
     void editCashShouldCallService() throws Exception {
-        when(accountService.editCash("test", 200, CashAction.DEPOSIT)).thenReturn(response("test", "Иван Иванович", "300.00"));
+        when(accountMoneyService.editCash("test", 200, CashAction.DEPOSIT)).thenReturn(response("test", "Иван Иванович", "300.00"));
 
         mockMvc.perform(post("/accounts/cash")
                         .param("login", "test")
@@ -54,7 +58,7 @@ class AccountsControllerTest extends AccountsIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.sum").value(300.00));
 
-        verify(accountService).editCash("test", 200, CashAction.DEPOSIT);
+        verify(accountMoneyService).editCash("test", 200, CashAction.DEPOSIT);
     }
 
     private CommonResponse response(String login, String name, String sum) {

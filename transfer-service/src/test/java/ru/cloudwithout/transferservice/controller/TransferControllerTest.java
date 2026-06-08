@@ -1,5 +1,6 @@
 package ru.cloudwithout.transferservice.controller;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,7 +9,6 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import io.micrometer.core.instrument.MeterRegistry;
 import ru.cloudwithout.commonmodels.common.dto.CommonResponse;
 import ru.cloudwithout.transferservice.client.AccountsClient;
 import ru.cloudwithout.transferservice.kafka.NotificationKafkaProducer;
