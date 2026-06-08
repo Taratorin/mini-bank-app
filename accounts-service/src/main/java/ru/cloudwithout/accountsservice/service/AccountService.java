@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import ru.cloudwithout.accountsservice.kafka.NotificationKafkaProducer;
 import ru.cloudwithout.accountsservice.model.Account;
 import ru.cloudwithout.accountsservice.repository.AccountRepository;
@@ -118,6 +119,7 @@ public class AccountService {
                     sendNotificationSafely(from, "transfer",
                             "Перевод выполнен: from=" + from + ", to=" + to + ", value=" + value);
                 } catch (OptimisticLockException | ObjectOptimisticLockingFailureException e) {
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
                     errors.add("Не удалось выполнить операцию, попробуйте снова");
                     sendNotificationSafely(from, "transfer", "Не удалось выполнить операцию");
                 }
