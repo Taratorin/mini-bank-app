@@ -19,7 +19,7 @@ class AccountRepositoryTest {
     private AccountRepository accountRepository;
 
     @Test
-    void findByLoginShouldReturnAccountFromSeedData() {
+    void findByLoginShouldReturnSavedAccount() {
         Account persisted = new Account();
         persisted.setLogin("test");
         persisted.setFirstLastName("Иван Иванович");

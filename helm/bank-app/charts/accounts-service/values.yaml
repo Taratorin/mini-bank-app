@@ -1,3 +1,8 @@
+observability:
+  zipkinEndpoint: http://172.18.0.1:9411/api/v2/spans
+  logstashHost: 172.18.0.1
+  logstashPort: 5000
+
 replicaCount: 1
 
 image:
@@ -11,6 +16,14 @@ service:
 
 container:
   port: 8083
+
+resources:
+  requests:
+    memory: 256Mi
+    cpu: 200m
+  limits:
+    memory: 512Mi
+    cpu: 500m
 
 keycloak:
   issuerUri: http://172.18.0.1:8080/realms/bank-realm

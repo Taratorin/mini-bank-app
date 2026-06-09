@@ -1,5 +1,6 @@
 package ru.cloudwithout.cashservice.controller;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,6 +21,7 @@ public class CashController {
 
     private final AccountsClient accountsClient;
     private final NotificationKafkaProducer notificationKafkaProducer;
+    private final MeterRegistry meterRegistry;
 
     @PostMapping()
     @PreAuthorize("hasRole('SERVICE')")
@@ -29,11 +31,15 @@ public class CashController {
         CommonResponse response = accountsClient.editCash(login, value, action);
         try {
             notificationKafkaProducer.send(
+                    login,
                     "cash-" + action.name().toLowerCase(),
                     "Обработан запрос cash-service для " + login + ", value=" + value
             );
         } catch (Exception exception) {
             log.warn("Не удалось отправить уведомление: login={}, action={}, value={}", login, action, value, exception);
+        }
+        if (action == CashAction.WITHDRAW && response.getErrors() != null && !response.getErrors().isEmpty()) {
+            meterRegistry.counter("bank.cash.withdraw.failed", "login", login).increment();
         }
         log.info("Запрос на операцию со счетом обработан для пользователя {}", login);
         return response;

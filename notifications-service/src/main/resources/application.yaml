@@ -1,3 +1,5 @@
 spring:
   application:
     name: notifications-service
+  config:
+    import: optional:classpath:application-observability.yaml

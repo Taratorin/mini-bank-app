@@ -17,7 +17,9 @@ class MainPageModelFillerTest {
 
     @Test
     void fillModelShouldPopulateAllMainAttributes() {
-        CommonResponse response = new CommonResponse(List.of(new AccountDto("alex", "Алексей")));
+        CommonResponse response = CommonResponse.builder()
+                .accounts(List.of(new AccountDto("alex", "Алексей")))
+                .build();
         response.setFirstLastName("Иван Иванович");
         response.setBirthDate(LocalDate.of(1990, 1, 1));
         response.setSum(new BigDecimal("100.00"));

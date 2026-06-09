@@ -64,15 +64,17 @@ public class AccountsClient {
 
     private CommonResponse getAccountByLoginFallback(String login, Throwable throwable) {
         log.warn("accounts-service временно недоступен при чтении профиля {}", login, throwable);
-        CommonResponse response = new CommonResponse(List.of());
-        response.setErrors(List.of("Сервис аккаунтов временно недоступен"));
-        return response;
+        return CommonResponse.builder()
+                .accounts(List.of())
+                .errors(List.of("Сервис аккаунтов временно недоступен"))
+                .build();
     }
 
     private CommonResponse editAccountFallback(String login, String name, LocalDate birthdate, Throwable throwable) {
         log.warn("accounts-service временно недоступен при изменении профиля {}", login, throwable);
-        CommonResponse response = new CommonResponse(List.of());
-        response.setErrors(List.of("Сервис аккаунтов временно недоступен, изменения не сохранены"));
-        return response;
+        return CommonResponse.builder()
+                .accounts(List.of())
+                .errors(List.of("Сервис аккаунтов временно недоступен, изменения не сохранены"))
+                .build();
     }
 }

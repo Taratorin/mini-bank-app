@@ -1,0 +1,56 @@
+spring:
+  application:
+    name: load-generator
+  main:
+    web-application-type: none
+  security:
+    oauth2:
+      client:
+        provider:
+          keycloak:
+            issuer-uri: ${KEYCLOAK_ISSUER_URI:http://172.18.0.1:8080/realms/bank-realm}
+        registration:
+          accounts-service:
+            client-id: accounts-service
+            client-secret: accounts-service-secret
+            authorization-grant-type: client_credentials
+            provider: keycloak
+          cash-service:
+            client-id: cash-service
+            client-secret: cash-service-secret
+            authorization-grant-type: client_credentials
+            provider: keycloak
+          transfer-service:
+            client-id: transfer-service
+            client-secret: transfer-service-secret
+            authorization-grant-type: client_credentials
+            provider: keycloak
+
+bank:
+  load:
+    enabled: true
+    gateway-base-url: ${BANK_GATEWAY_BASE_URL:http://localhost:8081}
+    requests-per-second: 300
+    concurrency: 128
+    connect-timeout-ms: 2000
+    response-timeout-sec: 15
+    logins:
+      - serg
+      - alex
+      - test
+      - user01
+      - user02
+      - user03
+      - user04
+      - user05
+      - user06
+      - user07
+      - user08
+      - user09
+      - user10
+
+logging:
+  config: classpath:log4j2-spring.xml
+  level:
+    ru.cloudwithout.loadgenerator: info
+    reactor.netty.http.client: warn

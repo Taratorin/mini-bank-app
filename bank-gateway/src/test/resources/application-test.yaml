@@ -1,3 +1,18 @@
+management:
+  tracing:
+    enabled: false
+
+spring:
+  security:
+    oauth2:
+      client:
+        provider:
+          keycloak:
+            issuer-uri: http://127.0.0.1:1/realms/test
+      resourceserver:
+        jwt:
+          issuer-uri: http://127.0.0.1:1/realms/test
+
 ROUTES_ACCOUNTS_URI: http://localhost:8083
 ROUTES_CASH_URI: http://localhost:8085
 ROUTES_TRANSFER_URI: http://localhost:8086

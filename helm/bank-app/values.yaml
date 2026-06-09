@@ -1,5 +1,10 @@
 # Umbrella chart values (release name: bank-app)
 
+observability: &observability
+  zipkinEndpoint: http://172.18.0.1:9411/api/v2/spans
+  logstashHost: 172.18.0.1
+  logstashPort: 5000
+
 postgres:
   enabled: true
   image: postgres:18.3
@@ -10,6 +15,7 @@ postgres:
 
 bank-ui:
   enabled: true
+  observability: *observability
   image:
     repository: bank-ui
     tag: latest
@@ -26,6 +32,7 @@ bank-ui:
 
 bank-gateway:
   enabled: true
+  observability: *observability
   image:
     repository: bank-gateway
     tag: latest
@@ -43,6 +50,7 @@ bank-gateway:
 
 accounts-service:
   enabled: true
+  observability: *observability
   image:
     repository: accounts-service
     tag: latest
@@ -50,7 +58,6 @@ accounts-service:
   keycloak:
     issuerUri: http://172.18.0.1:8080/realms/bank-realm
   kafka:
-    bootstrapServers: bank-app-kafka-headless.default.svc.cluster.local:9092
     topic: notifications
   postgres:
     jdbcUrl: jdbc:postgresql://bank-app-postgres:5432/bank-app?currentSchema=accounts
@@ -61,6 +68,7 @@ accounts-service:
 
 cash-service:
   enabled: true
+  observability: *observability
   image:
     repository: cash-service
     tag: latest
@@ -70,7 +78,6 @@ cash-service:
   accounts:
     baseUrl: http://bank-app-accounts-service:8083
   kafka:
-    bootstrapServers: bank-app-kafka-headless.default.svc.cluster.local:9092
     topic: notifications
   oauth:
     cashClientSecret: cash-service-secret
@@ -78,6 +85,7 @@ cash-service:
 
 transfer-service:
   enabled: true
+  observability: *observability
   image:
     repository: transfer-service
     tag: latest
@@ -87,13 +95,13 @@ transfer-service:
   accounts:
     baseUrl: http://bank-app-accounts-service:8083
   kafka:
-    bootstrapServers: bank-app-kafka-headless.default.svc.cluster.local:9092
     topic: notifications
   oauth:
     clientSecret: transfer-service-secret
 
 notifications-service:
   enabled: true
+  observability: *observability
   image:
     repository: notifications-service
     tag: latest
@@ -101,7 +109,6 @@ notifications-service:
   keycloak:
     issuerUri: http://172.18.0.1:8080/realms/bank-realm
   kafka:
-    bootstrapServers: bank-app-kafka-headless.default.svc.cluster.local:9092
     topic: notifications
     consumerGroup: notifications-service
 

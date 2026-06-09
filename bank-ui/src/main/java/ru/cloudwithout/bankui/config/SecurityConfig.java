@@ -17,7 +17,7 @@ public class SecurityConfig {
                 // Блок настройки авторизации запросов
                 .authorizeHttpRequests(auth -> auth
                         // Разрешаем всем доступ к главной странице и статическим ресурсам по пути /css/**
-                        .requestMatchers("/", "/css/**").permitAll()
+                        .requestMatchers("/", "/css/**", "/actuator/**").permitAll()
                         // Все остальные запросы требуют аутентификации
                         .anyRequest().authenticated()
                 )

@@ -1,0 +1,27 @@
+dependencies:
+- name: postgres
+  repository: ""
+  version: 0.1.0
+- name: bank-ui
+  repository: ""
+  version: 0.1.0
+- name: bank-gateway
+  repository: ""
+  version: 0.1.0
+- name: accounts-service
+  repository: ""
+  version: 0.1.0
+- name: cash-service
+  repository: ""
+  version: 0.1.0
+- name: transfer-service
+  repository: ""
+  version: 0.1.0
+- name: notifications-service
+  repository: ""
+  version: 0.1.0
+- name: kafka
+  repository: ""
+  version: 0.1.0
+digest: sha256:02772113a00d32296630dc4d429a2a0468aa72445849d330d61404845dc05a4c
+generated: "2026-06-04T16:02:27.069978735+03:00"

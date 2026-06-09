@@ -1,6 +1,7 @@
 package ru.cloudwithout.bankui.client;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,6 +27,7 @@ public class TransferClient {
     private String gatewayBaseUrl;
 
     @CircuitBreaker(name = "transferClient", fallbackMethod = "transferFallback")
+    @Retry(name = "transferClient", fallbackMethod = "transferFallback")
     public CommonResponse transfer(String from, int value, String to) {
         URI uri = UriComponentsBuilder.fromUriString(gatewayBaseUrl)
                 .path("/transfer")
@@ -49,8 +51,9 @@ public class TransferClient {
 
     private CommonResponse transferFallback(String from, int value, String to, Throwable throwable) {
         log.warn("transfer-service временно недоступен: from={}, to={}, value={}", from, to, value, throwable);
-        CommonResponse response = new CommonResponse(List.of());
-        response.setErrors(List.of("Сервис переводов временно недоступен, перевод не выполнен"));
-        return response;
+        return CommonResponse.builder()
+                .accounts(List.of())
+                .errors(List.of("Сервис переводов временно недоступен, перевод не выполнен"))
+                .build();
     }
 }

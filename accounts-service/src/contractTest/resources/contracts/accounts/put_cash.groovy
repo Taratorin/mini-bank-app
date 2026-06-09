@@ -10,7 +10,7 @@ Contract.make {
             queryParameters {
                 parameter "login": "test"
                 parameter "value": "100"
-                parameter "action": "PUT"
+                parameter "action": "DEPOSIT"
             }
         }
     }

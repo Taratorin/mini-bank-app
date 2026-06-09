@@ -1,11 +1,12 @@
 package ru.cloudwithout.accountsservice.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.cloudwithout.accountsservice.kafka.NotificationKafkaProducer;
+import ru.cloudwithout.accountsservice.kafka.NotificationPublisher;
 import ru.cloudwithout.accountsservice.model.Account;
 import ru.cloudwithout.accountsservice.repository.AccountRepository;
 import ru.cloudwithout.commonmodels.common.dto.CashAction;
@@ -20,18 +21,29 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class AccountServiceTest {
+class AccountMoneyServiceTest {
 
     @Mock
     private AccountRepository accountRepository;
     @Mock
     private NotificationKafkaProducer notificationKafkaProducer;
 
-    @InjectMocks
-    private AccountService accountService;
+    private NotificationPublisher notificationPublisher;
+    private AccountMoneyService accountMoneyService;
+
+    @BeforeEach
+    void setUp() {
+        notificationPublisher = new NotificationPublisher(notificationKafkaProducer);
+        accountMoneyService = new AccountMoneyService(
+                accountRepository,
+                notificationPublisher
+        );
+    }
 
     @Test
     void editCashPutShouldIncreaseBalance() {
@@ -40,13 +52,13 @@ class AccountServiceTest {
         when(accountRepository.findByLogin("serg")).thenReturn(Optional.of(serg));
         when(accountRepository.findAllByLoginNot("serg")).thenReturn(List.of(alex));
 
-        CommonResponse response = accountService.editCash("serg", 50, CashAction.DEPOSIT);
+        CommonResponse response = accountMoneyService.editCash("serg", 50, CashAction.DEPOSIT);
 
         assertThat(response.getSum()).isEqualByComparingTo("150.00");
         assertThat(response.getErrors()).isEmpty();
         assertThat(response.getInfo()).contains("Положено руб.: 50");
         verify(accountRepository).save(serg);
-        verify(notificationKafkaProducer).send(eq("cash-deposit"), any());
+        verify(notificationKafkaProducer).send(eq("serg"), eq("cash-deposit"), any());
     }
 
     @Test
@@ -56,7 +68,7 @@ class AccountServiceTest {
         when(accountRepository.findByLogin("serg")).thenReturn(Optional.of(serg));
         when(accountRepository.findAllByLoginNot("serg")).thenReturn(List.of(alex));
 
-        CommonResponse response = accountService.editCash("serg", 100, CashAction.WITHDRAW);
+        CommonResponse response = accountMoneyService.editCash("serg", 100, CashAction.WITHDRAW);
 
         assertThat(response.getSum()).isEqualByComparingTo("40.00");
         assertThat(response.getErrors()).contains("Недостаточно средств на счёте");
@@ -70,7 +82,7 @@ class AccountServiceTest {
         when(accountRepository.findByLogin("serg")).thenReturn(Optional.of(serg));
         when(accountRepository.findAllByLoginNot("serg")).thenReturn(List.of());
 
-        CommonResponse response = accountService.editCash("serg", 20, CashAction.DEPOSIT);
+        CommonResponse response = accountMoneyService.editCash("serg", 20, CashAction.DEPOSIT);
 
         assertThat(response.getSum()).isEqualByComparingTo("99999990.00");
         assertThat(response.getErrors()).contains("Сумма на счёте превышает допустимый лимит (99 999 999,99 руб.)");
@@ -86,7 +98,7 @@ class AccountServiceTest {
         when(accountRepository.findByLogin("alex")).thenReturn(Optional.of(to));
         when(accountRepository.findAllByLoginNot("serg")).thenReturn(List.of(to));
 
-        CommonResponse response = accountService.transfer("serg", 120, "alex");
+        CommonResponse response = accountMoneyService.transfer("serg", 120, "alex");
 
         assertThat(from.getSum()).isEqualByComparingTo("380.00");
         assertThat(to.getSum()).isEqualByComparingTo("220.00");

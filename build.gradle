@@ -11,4 +11,13 @@ subprojects {
             languageVersion = JavaLanguageVersion.of(21)
         }
     }
+
+    afterEvaluate {
+        if (plugins.hasPlugin('org.springframework.boot')) {
+            configurations.configureEach {
+                exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+                exclude group: 'org.apache.logging.log4j', module: 'log4j-to-slf4j'
+            }
+        }
+    }
 }

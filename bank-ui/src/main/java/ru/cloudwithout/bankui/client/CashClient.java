@@ -1,6 +1,7 @@
 package ru.cloudwithout.bankui.client;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,6 +28,7 @@ public class CashClient {
     private String gatewayBaseUrl;
 
     @CircuitBreaker(name = "cashClient", fallbackMethod = "editCashFallback")
+    @Retry(name = "cashClient", fallbackMethod = "editCashFallback")
     public CommonResponse editCash(String login, int value, CashAction action) {
         URI uri = UriComponentsBuilder.fromUriString(gatewayBaseUrl)
                 .path("/cash")
@@ -50,8 +52,9 @@ public class CashClient {
 
     private CommonResponse editCashFallback(String login, int value, CashAction action, Throwable throwable) {
         log.warn("cash-service временно недоступен: login={}, value={}, action={}", login, value, action, throwable);
-        CommonResponse response = new CommonResponse(List.of());
-        response.setErrors(List.of("Сервис операций со счетом временно недоступен, операция не выполнена"));
-        return response;
+        return CommonResponse.builder()
+                .accounts(List.of())
+                .errors(List.of("Сервис операций со счетом временно недоступен, операция не выполнена"))
+                .build();
     }
 }

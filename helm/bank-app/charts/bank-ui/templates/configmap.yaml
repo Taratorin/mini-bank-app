@@ -6,3 +6,6 @@ data:
   SERVER_PORT: {{ .Values.container.port | quote }}
   KEYCLOAK_ISSUER_URI: {{ .Values.keycloak.issuerUri | quote }}
   BANK_GATEWAY_BASE_URL: {{ .Values.gateway.baseUrl | quote }}
+  ZIPKIN_ENDPOINT: {{ .Values.observability.zipkinEndpoint | quote }}
+  LOGSTASH_HOST: {{ .Values.observability.logstashHost | quote }}
+  LOGSTASH_PORT: {{ .Values.observability.logstashPort | quote }}
